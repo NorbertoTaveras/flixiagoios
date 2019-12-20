@@ -8,17 +8,30 @@
 
 import UIKit
 import Firebase
+import SystemConfiguration
+import RealmSwift
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-
+    var reachabilityListeners: [(Bool) -> Void] = []
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
         FirebaseApp.configure()
+        
+//        let realm = try! Realm()
+//        
+//        try! realm.write {
+//            realm.deleteAll()
+//        }
+        
         return true
+    }
+    
+    @objc func checkForReachability(notification: NSNotification) {
+        
     }
 
     // MARK: UISceneSession Lifecycle
