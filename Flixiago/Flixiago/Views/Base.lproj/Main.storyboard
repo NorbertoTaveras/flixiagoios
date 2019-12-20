@@ -1194,40 +1194,41 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="sFd-bJ-vzF" userLabel="Photo">
-                                <rect key="frame" x="145" y="8" width="124" height="124"/>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="person.badge.plus.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="sFd-bJ-vzF" userLabel="Photo">
+                                <rect key="frame" x="145" y="9.5" width="124" height="124"/>
+                                <color key="tintColor" red="0.34641844030000002" green="0.22235286239999999" blue="0.59891778230000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="width" secondItem="sFd-bJ-vzF" secondAttribute="height" multiplier="1:1" id="SUg-eO-6ym"/>
                                 </constraints>
                             </imageView>
-                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Update email address" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Mjb-ue-18E" userLabel="Email" customClass="MDCTextField">
-                                <rect key="frame" x="16" y="148" width="382" height="34"/>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Email" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Mjb-ue-18E" userLabel="Email" customClass="MDCTextField">
+                                <rect key="frame" x="16" y="132" width="382" height="34"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
-                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Update display name" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="9or-g2-onM" userLabel="DisplayName" customClass="MDCTextField">
-                                <rect key="frame" x="16" y="182" width="382" height="34"/>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Display Name" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="9or-g2-onM" userLabel="DisplayName" customClass="MDCTextField">
+                                <rect key="frame" x="16" y="166" width="382" height="34"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
-                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Change password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Zm8-Qf-YyV" userLabel="Password" customClass="MDCTextField">
-                                <rect key="frame" x="16" y="216" width="382" height="34"/>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Zm8-Qf-YyV" userLabel="Password" customClass="MDCTextField">
+                                <rect key="frame" x="16" y="200" width="382" height="34"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits"/>
+                                <textInputTraits key="textInputTraits" secureTextEntry="YES"/>
                             </textField>
-                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Confirm changed password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Ywp-mZ-rA6" userLabel="ConfirmPassword" customClass="MDCTextField">
-                                <rect key="frame" x="16" y="250" width="382" height="34"/>
+                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Confirm Password" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Ywp-mZ-rA6" userLabel="ConfirmPassword" customClass="MDCTextField">
+                                <rect key="frame" x="16" y="234" width="382" height="34"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits"/>
+                                <textInputTraits key="textInputTraits" secureTextEntry="YES"/>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Leave the password fields blank to leave the password unchanged" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumFontSize="5" translatesAutoresizingMaskIntoConstraints="NO" id="xAL-2j-NFv">
-                                <rect key="frame" x="16" y="300" width="382" height="14.5"/>
+                                <rect key="frame" x="16" y="284" width="382" height="14.5"/>
                                 <fontDescription key="fontDescription" type="italicSystem" pointSize="12"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="IVV-j2-MI9" customClass="MDCButton">
-                                <rect key="frame" x="16" y="330.5" width="382" height="36"/>
+                                <rect key="frame" x="16" y="314.5" width="382" height="36"/>
                                 <color key="backgroundColor" red="0.34641844030000002" green="0.22235286239999999" blue="0.59891778230000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="36" id="SwB-Tl-hgC"/>
@@ -1241,7 +1242,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="yCo-wu-qtn" customClass="MDCButton">
-                                <rect key="frame" x="16" y="382.5" width="382" height="36"/>
+                                <rect key="frame" x="16" y="366.5" width="382" height="36"/>
                                 <color key="backgroundColor" red="0.92077261210000005" green="0.80058675999999995" blue="0.31087681649999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="36" id="uuk-Rb-Vbb"/>
@@ -1275,7 +1276,7 @@
                             <constraint firstItem="8kC-AI-TMi" firstAttribute="trailing" secondItem="Mjb-ue-18E" secondAttribute="trailing" constant="16" id="eJd-lH-skR"/>
                             <constraint firstItem="yCo-wu-qtn" firstAttribute="top" secondItem="IVV-j2-MI9" secondAttribute="bottom" constant="16" id="haN-Np-fR0"/>
                             <constraint firstItem="yCo-wu-qtn" firstAttribute="leading" secondItem="8kC-AI-TMi" secondAttribute="leading" constant="16" id="hfS-am-FkL"/>
-                            <constraint firstItem="Mjb-ue-18E" firstAttribute="top" secondItem="sFd-bJ-vzF" secondAttribute="bottom" constant="16" id="k8o-7E-FTy"/>
+                            <constraint firstItem="Mjb-ue-18E" firstAttribute="top" secondItem="sFd-bJ-vzF" secondAttribute="bottom" id="k8o-7E-FTy"/>
                             <constraint firstItem="8kC-AI-TMi" firstAttribute="trailing" secondItem="Ywp-mZ-rA6" secondAttribute="trailing" constant="16" id="l0d-fp-bii"/>
                             <constraint firstItem="sFd-bJ-vzF" firstAttribute="centerX" secondItem="8kC-AI-TMi" secondAttribute="centerX" id="oNI-To-nPB"/>
                             <constraint firstItem="8kC-AI-TMi" firstAttribute="trailing" secondItem="Zm8-Qf-YyV" secondAttribute="trailing" constant="16" id="ovU-13-8X7"/>

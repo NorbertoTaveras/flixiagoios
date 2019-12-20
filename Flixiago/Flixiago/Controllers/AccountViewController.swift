@@ -46,6 +46,13 @@ class AccountViewController: AuthUtils {
         initForm(views: views)
     }
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        emailView.resignFirstResponder()
+        displayNameView.resignFirstResponder()
+        passwordView.resignFirstResponder()
+        confirmPasswordView.resignFirstResponder()
+    }
 
     @IBAction func saveAccountChanges(_ sender: Any) {
         updateAccount { (errors) in
