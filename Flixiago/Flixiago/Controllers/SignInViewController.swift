@@ -13,8 +13,6 @@ import MaterialComponents
 import MaterialComponents.MaterialTextFields_ColorThemer
 
 class SignInViewController: AuthUtils {
-
-    let purple = UIColor(red: 78.0/255.0, green: 50.0/255.0, blue: 142.0/255.0, alpha: 1.0)
     
     @IBOutlet weak var emailView: MDCTextField!
     @IBOutlet weak var passwordView: MDCTextField!

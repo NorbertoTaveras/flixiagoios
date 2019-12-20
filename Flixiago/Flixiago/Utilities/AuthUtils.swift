@@ -19,6 +19,12 @@ class AuthUtils:
     UIImagePickerControllerDelegate,
     UINavigationControllerDelegate {
     
+    let purple = UIColor(
+        red: CGFloat(0x4e) / 255.0,
+        green: CGFloat(0x32) / 255.0,
+        blue: CGFloat(0x8e) / 255.0,
+        alpha: CGFloat(1.0))
+    
     public enum ValidationType {
         case signIn
         case signUp
@@ -62,6 +68,10 @@ class AuthUtils:
     }
     
     public func initForm(views: FormViews) {
+        
+        let colorScheme = MDCSemanticColorScheme()
+        colorScheme.primaryColor = purple
+        
         views.emailView.delegate = self
         views.displayNameView?.delegate = self
         views.passwordView.delegate = self
@@ -75,30 +85,54 @@ class AuthUtils:
         
         let emailOutlined = MDCTextInputControllerOutlined(
             textInput: views.emailView)
-
+        
+        views.emailView.textColor = purple
+        emailOutlined.borderStrokeColor = purple
+        
+        MDCTextFieldColorThemer.applySemanticColorScheme(
+            colorScheme, to: emailOutlined)
+        
         let displayNameOutlined: MDCTextInputControllerOutlined?
         if views.displayNameView != nil {
             displayNameOutlined = MDCTextInputControllerOutlined(
                 textInput: views.displayNameView)
+            
+            views.displayNameView?.textColor = purple
+            displayNameOutlined?.borderStrokeColor = purple
+            
+            MDCTextFieldColorThemer.applySemanticColorScheme(
+                    colorScheme,
+                    to: displayNameOutlined ??
+                        MDCTextInputControllerOutlined())
         } else {
             displayNameOutlined = nil
         }
 
         let passwordOutlined = MDCTextInputControllerOutlined(
             textInput: views.passwordView)
-
+        
+        views.passwordView.textColor = purple
+        passwordOutlined.borderStrokeColor = purple
+        
+        MDCTextFieldColorThemer.applySemanticColorScheme(
+            colorScheme, to: passwordOutlined)
+        
         let confirmPasswordOutlined: MDCTextInputControllerOutlined?
         if views.confirmPasswordView != nil {
+            
             confirmPasswordOutlined =   MDCTextInputControllerOutlined(
                 textInput: views.confirmPasswordView)
+            
+            views.confirmPasswordView?.textColor = purple
+            confirmPasswordOutlined?.borderStrokeColor = purple
+            
+            MDCTextFieldColorThemer.applySemanticColorScheme(
+                    colorScheme,
+                    to: confirmPasswordOutlined ??
+                        MDCTextInputControllerOutlined())
         } else {
             confirmPasswordOutlined = nil
         }
-        
-        let colorScheme = MDCSemanticColorScheme()
-        views.emailView.tintColor = colorScheme.primaryColor
-        
-        MDCTextFieldColorThemer.applySemanticColorScheme(colorScheme, to: emailOutlined)
         
         if let photoView = views.photoView {
             photoView.layer.masksToBounds = true
