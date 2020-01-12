@@ -38,41 +38,23 @@ class ShowsViewController: MediaViewBaseController {
             TMDBService.searchShows(
                 genreId: genreId,
                 page: page) { (shows, error) in
-                    if let error = error {
-                        print("Error: \(error)")
-                    } else if let shows = shows {
-                        print("Response \(shows)")
-                        self.append(media: shows.results)
-                    } else {
-                        print("nil response and no error!")
-                    }
+                    self.append(media: shows?.results ?? [],
+                                error: error)
             }
         } else if let query = query {
             TMDBService.searchShows(
                 query: query,
                 page: page) { (shows, error) in
-                    if let error = error {
-                        print("Error: \(error)")
-                    } else if let shows = shows {
-                        print("Response \(shows)")
-                        self.append(media: shows.results)
-                    } else {
-                        print("nil response and no error!")
-                    }
+                    self.append(media: shows?.results ?? [],
+                                error: error)
             }
         } else {
             TMDBService.getShows(
                 sortBy: TMDBService.showSortBys[currentSortBy].sortBy,
                 page: page,
                 language: TMDBService.LANGUAGE) { (shows, error) in
-                    if let error = error {
-                        print("Error: \(error)")
-                    } else if let shows = shows {
-                        print("Response \(shows)")
-                        self.append(media: shows.results)
-                    } else {
-                        print("nil response and no error!")
-                    }
+                    self.append(media: shows?.results ?? [],
+                                error: error)
             }
         }
     }
