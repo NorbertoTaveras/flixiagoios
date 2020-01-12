@@ -424,6 +424,46 @@ public class TMDBService {
             callback: callback)
     }
     
+    public static func getPerson(
+        id: Int64,
+        callback: @escaping (Person?, Error?) -> Void) {
+        
+        let urlText = getUrl(
+            path: "3/person/\(id)",
+            query: [
+                "language": LANGUAGE
+        ])
+        
+        request(urlText: urlText, callback: callback)
+    }
+    
+    public static func getPersonImages(
+        id: Int64,
+        callback: @escaping (PersonImages?, Error?) -> Void) {
+        
+        let urlText = getUrl(
+            path: "3/person/\(id)/images",
+            query: [:]
+        )
+        
+        request(urlText: urlText, callback: callback)
+    }
+    
+    public static func getPersonRoles(
+        id: Int64,
+        callback: @escaping ([PersonCombinedCreditsRole]?, Error?) -> Void) {
+        
+        let urlText = getUrl(
+            path: "3/person/\(id)/combined_credits",
+            query: [
+                "language": LANGUAGE
+        ])
+        
+        request(urlText: urlText) { (response: PersonCombinedCreditsResponse?, error) in
+            callback(error != nil ? nil : (response?.roles ?? []), error)
+        }
+    }
+    
     static func urlEncodedKVP(key: String, value: String) -> String {
         let encodedKey = key.addingPercentEncoding(
             withAllowedCharacters: .urlQueryAllowed)
