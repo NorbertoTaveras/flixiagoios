@@ -35,6 +35,8 @@ class MediaViewBaseController:
     
     private var currentGenreId: Int64?
     
+    private var tablePlaceholder: UIUtils.PlaceholderView?
+    
     weak var table: UITableView!
 
     func loadMore(page: Int, query: String?, genreId: Int64?) {
@@ -45,7 +47,16 @@ class MediaViewBaseController:
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        tablePlaceholder = UIUtils.PlaceholderView(
+            parent: table,
+            text: "Error getting results")
+
         table.reloadData()
+    }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        tablePlaceholder?.handleLayoutSubViews()
     }
     
     func initSearch(searchBar: UISearchBar) {
@@ -58,9 +69,10 @@ class MediaViewBaseController:
         table.delegate = self
         table.dataSource = self
         table.prefetchDataSource = self
+
         loadMore(page: page, query: nil, genreId: currentGenreId)
     }
-
+    
     func initSortBySegment(sortBySegment: UISegmentedControl,
                            fromSortBys: [TMDBService.SortByPair],
                            titleView: UILabel) {
@@ -237,9 +249,11 @@ class MediaViewBaseController:
     }
     
     // MARK: - Data Results Processing
-    func append(media: [Media]) {
+    func append(media: [Media], error: Error?) {
         self.media.append(contentsOf: media)
         self.table.reloadData()
+        
+        tablePlaceholder?.toggle(show: media.isEmpty)
     }
     
     // MARK: - Table View Methods
@@ -311,6 +325,7 @@ class MediaViewBaseController:
     func reset() {
         media.removeAll()
         table.reloadData()
+        tablePlaceholder?.toggle(show: false)
         page = 1
     }
     

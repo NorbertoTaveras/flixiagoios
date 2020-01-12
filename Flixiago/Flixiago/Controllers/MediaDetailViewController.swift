@@ -40,6 +40,8 @@ public class MedialDetailViewController: UIViewController {
     
     var reviewsContainer: [Review] = []
     
+    var selectedSimilar: Media?
+    
     // #4e328e
     let purple = UIColor(
         red: CGFloat(0x4e) / 255.0,
@@ -69,9 +71,26 @@ public class MedialDetailViewController: UIViewController {
         alpha: 1.0)
     
     private var color: UIColor?
+    private var selectedCastMember: CastMember?
+
+    var pending = 0
+    var completed = 0
+    var removeIndicator: UIUtils.IndicatorRemover?
     
+    private func handleCompletion() {
+        completed += 1
+        
+        if completed == pending,
+            let removeIndicator = removeIndicator {
+            removeIndicator()
+        }
+    }
+
     public override func viewDidLoad() {
         super.viewDidLoad()
+        
+        pending = 0
+        completed = 0
         
         let type = media?.getNoun(capitalize: true, plural: true) ?? "???"
         similarHeadingView.text = "Similar \(type)"
@@ -98,8 +117,8 @@ public class MedialDetailViewController: UIViewController {
         ratingRingView.maxValue = 100.0
         ratingRingView.outerRingColor = purple
         ratingRingView.innerRingColor = color!
-        ratingRingView.outerRingWidth = 1.0
-        ratingRingView.value = 100.0 * CGFloat((media?.vote_average ?? 0) / Float(10.0))//CGFloat(10.0 * (media?.vote_average ?? 0))
+        ratingRingView.outerRingWidth = 2.0
+        ratingRingView.value = 100.0 * CGFloat((media?.vote_average ?? 0) / Float(10.0))
         
         ratingRingView.startProgress(to: 0, duration: 0.001) {
             self.ratingRingView.startProgress(
@@ -119,47 +138,128 @@ public class MedialDetailViewController: UIViewController {
         similarScroller = ImageScrollerManager(
             view: similarCollectionView)
         
+        pending += 1
         media?.getDetailsRecord(callback: { (media, error) in
             self.dateRuntimeView.text = media?.getSeasonEpisodeText()
+            self.handleCompletion()
         })
 
+        pending += 1
         media?.getReviews(page: 1) { (reviews, error) in
-            let reviews = reviews?.results ?? []
-            self.reviewsView.text = "\(String(reviews.count)) Reviews"
+            self.processReviews(reviews?.results, error)
+            self.handleCompletion()
         }
         
+        pending += 1
         media?.getCast(callback: { (cast, error) in
             guard let cast = cast?.cast
                 else { return }
             
-            self.castMemberScroller?.setItems(items: cast)
+            self.pending += 1
+            self.castMemberScroller?.setItems(items: cast) { item in
+                guard let castMember = item as? CastMember
+                    else { self.handleCompletion(); return }
+                
+                self.selectedCastMember = castMember
+                
+                self.performSegue(
+                    withIdentifier: "castMemberView",
+                    sender: self)
+                
+                self.handleCompletion()
+            }
+            
+            self.handleCompletion()
         })
         
+        pending += 1
         media?.getTrailers(callback: { (trailers, error) in
             guard let trailers = trailers?.results
-                else { return }
+                else { self.handleCompletion(); return }
             
-            self.trailerScroller?.setItems(items: trailers)
+            self.pending += 1
+            self.trailerScroller?.setItems(items: trailers) { item in
+                guard let trailer = item as? Trailer,
+                    let videoUrl = trailer.getVideoUrl()
+                    else { self.handleCompletion(); return }
+                
+                UIUtils.playVideoUrl(
+                    parentView: self,
+                    urlText: videoUrl,
+                    inBrowser: true)
+                
+                self.handleCompletion()
+            }
         })
         
+        pending += 1
         media?.getSimilar(page: 1, callback: { (similars, error) in
             guard let similars = similars
-                else { return }
+                else { self.handleCompletion(); return }
             
-            self.similarScroller?.setItems(items: similars)
+            self.pending += 1
+            self.similarScroller?.setItems(items: similars) { item in
+                guard let media = item as? Media
+                    else { self.handleCompletion(); return }
+                
+                self.pending += 1
+                TMDBService.getMediaDetail(
+                    id: media.id,
+                    type: media.getMediaType()) { (media, error) in
+                        self.selectedSimilar = media
+                        
+                        self.performSegue(
+                            withIdentifier: "MediaDetailSelfReference",
+                            sender: self)
+                        
+                        self.handleCompletion()
+                }
+                
+                self.handleCompletion()
+            }
         })
 
+        self.pending += 1
         media?.getGenreList { (genreList, error) in
-
             guard let genreList = genreList else {
                 self.genresView.text = "Genres Unknown"
+                self.handleCompletion()
                 return
             }
             
             self.genresView.text = self.media?.formatGenreList(lookup: genreList)
+            
+            self.handleCompletion()
         }
         
         media?.setupFavoriteButton(into: favoriteView)
+        
+        media?.setupWatchButton(into: watchView)
+    }
+    
+    public override func viewDidAppear(_ animated: Bool) {
+        if pending < completed {
+            removeIndicator = UIUtils.createIndicator(parent: self)
+        }
+    }
+    
+    private func processReviews(_ reviews: [Review]?, _ error: Error?) {
+        reviewsView.text = "\(String(reviews?.count ?? 0)) Reviews"
+        
+        guard let reviews = reviews
+            else { return }
+
+        reviewsContainer = reviews
+        
+        let tapRecognizer = UITapGestureRecognizer(
+            target: self,
+            action: #selector(reviewsTapped))
+        
+        reviewsView.addGestureRecognizer(tapRecognizer)
+    }
+    
+    @objc private func reviewsTapped(sender: UIView) {
+        performSegue(withIdentifier: "reviewView", sender: self)
     }
     
     /*
@@ -194,14 +294,45 @@ public class MedialDetailViewController: UIViewController {
         media?.toggleFavorite(into: favoriteView)
     }
     
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    @IBAction func watchClicked(_ sender: UIButton) {
+        media?.toggleWatch(into: watchView)
     }
-    */
+
+    public override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        switch segue.identifier {
+        case "reviewView":
+            guard let destination = segue.destination as? ReviewsViewController
+                else { return }
+            
+            destination.mediaReviews = reviewsContainer
+            break;
+            
+        case "castMemberView":
+            guard let destination = segue.destination as? CastViewController
+                else { return }
+            
+            guard let selectedCastMemberId = selectedCastMember?.id
+                else { return }
+            
+            destination.personId = selectedCastMemberId
+            
+            break;
+            
+        case "MediaDetailSelfReference":
+            guard let destination = segue.destination
+                as? MedialDetailViewController
+                else { return }
+            
+            guard let selectedSimilarMedia = selectedSimilar
+                else { return }
+            
+            destination.media = selectedSimilarMedia
+            
+            break
+            
+        default:
+            break;
+        }
+    }
 
 }
