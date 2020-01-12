@@ -56,6 +56,7 @@ class AuthUtils:
     )
     
     var fields: FormFields!
+    var photoChanged: Bool = false
     
     func valuesFromFields() -> FormValues {
         return (
@@ -194,12 +195,13 @@ class AuthUtils:
     }
     
     func getPhotoFrom(source: UIImagePickerController.SourceType) {
-        if UIImagePickerController.isSourceTypeAvailable(source) {
-            let pickerController = UIImagePickerController()
-            pickerController.delegate = self
-            pickerController.sourceType = source
-            present(pickerController, animated: true, completion: nil)
-        }
+        guard UIImagePickerController.isSourceTypeAvailable(source)
+            else { return }
+
+        let pickerController = UIImagePickerController()
+        pickerController.delegate = self
+        pickerController.sourceType = source
+        present(pickerController, animated: true, completion: nil)
     }
     
     func getPhotoFromCamera() {
@@ -212,13 +214,15 @@ class AuthUtils:
     
     func imagePicked(image: UIImage) {
         fields!.photoView?.image = image
+        photoChanged = true
     }
     
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         dismiss(animated: true, completion: nil)
     }
     
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+    func imagePickerController(_ picker: UIImagePickerController,
+                               didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         let key = UIImagePickerController.InfoKey.originalImage
         if let image = info[key] as? UIImage {
             self.imagePicked(image: image)
@@ -298,10 +302,14 @@ class AuthUtils:
     }
     
     func signInWith() {
+        let removeIndicator = UIUtils.createIndicator(parent: self)
+        
         if let values = validate(type: ValidationType.signIn) {
             Auth.auth().signIn(
                 withEmail: values.email,
                 password: values.password) { (authResult, error) in
+                    removeIndicator()
+                    
                     guard let user = authResult?.user, error == nil else {
                         UIUtils.modalDialog(
                             parent: self,
@@ -316,7 +324,25 @@ class AuthUtils:
                             title: "Email Not Verified",
                             message: "Email needs to be verified." +
                             " Please check your mail and click the" +
-                            " account verification link")
+                            " account verification link",
+                            secondButtonText: "Resend verification email") { modalButton in
+                                guard modalButton == .Second
+                                    else { return }
+                                
+                                user.sendEmailVerification { (error) in
+                                    if let error = error {
+                                        UIUtils.modalDialog(
+                                            parent: self,
+                                            title: "Unable to send verification email",
+                                            message: error.localizedDescription)
+                                    } else {
+                                        UIUtils.modalDialog(
+                                            parent: self,
+                                            title: "Verification Email Sent",
+                                            message: "The verification email was sent successfully")
+                                    }
+                                }
+                        }
                         return
                     }
                     
@@ -324,18 +350,26 @@ class AuthUtils:
                         "\(Auth.auth().currentUser?.email ?? "<no email in current user>")" +
                         " (\(user.email ?? "<no email>")")
                     
-                    // Success
-                    self.continueToMainUI()
+                    DispatchQueue.main.async {
+                        FirestoreService.sync(parent: self) {
+                            // Success
+                            self.continueToMainUI()
+                        }
+                    }
             }
-            
+        } else {
+            removeIndicator()
         }
     }
     
     func signUpWith(fields: FormFields) {
+        let removeIndicator = UIUtils.createIndicator(parent: self)
+        
         if let values = validate(type: ValidationType.signUp) {
             Auth.auth().createUser(
                 withEmail: values.email,
                 password: values.password) { (authResult, error) in
+                    removeIndicator()
                     
                     guard let user = authResult?.user, error == nil else {
                         UIUtils.modalDialog(
@@ -407,7 +441,11 @@ class AuthUtils:
     }
     
     func sendEmailVerification(user: User) {
+        let removeIndicator = UIUtils.createIndicator(parent: self)
+        
         user.sendEmailVerification() { error in
+            removeIndicator()
+            
             if error == nil {
                 self.promptForVerification(user: user)
             } else {
@@ -477,6 +515,18 @@ class AuthUtils:
                 to: values.password,
                 completion: profileChangeCallback)
         }
+        
+        if let photo = values.photo,
+            photoChanged {
+            expectedCompletions += 1
+            uploadProfilePhoto(
+                userId: user.uid,
+                image: photo) { (_, error) in
+                    
+                self.photoChanged = false
+                profileChangeCallback(error)
+            }
+        }
     }
     
     func resetPassword(withEmail: String,
@@ -513,13 +563,20 @@ class AuthUtils:
         performSegue(withIdentifier: "authSuccess", sender: self)
     }
     
-    func uploadProfilePhoto(userId: String, image: UIImage,
-                            callback: @escaping (URL?, Error?) -> Void) {
+    func profilePhotoStorageRef(userId: String) -> StorageReference {
         let storage = Storage.storage()
         let root = storage.reference()
         let profilePhotos = root.child("profilePhotos")
         let photo = profilePhotos.child(userId)
+        return photo
+    }
+    
+    func uploadProfilePhoto(userId: String, image: UIImage,
+                            callback: @escaping (URL?, Error?) -> Void) {
+        let removeIndicator = UIUtils.createIndicator(parent: self)
+        
         guard let jpeg = image.jpegData(compressionQuality: 0.7) else {
+            removeIndicator()
             callback(nil, nil)
             return
         }
@@ -528,11 +585,38 @@ class AuthUtils:
             "contentType": "image/jpeg"
         ])
         
-        photo.putData(jpeg, metadata: metadata) { (metadata, error) in
-            photo.downloadURL(completion: callback)
+        let photoRef = profilePhotoStorageRef(userId: userId)
+        
+        photoRef.putData(jpeg, metadata: metadata) { (metadata, error) in
+            removeIndicator()
+            photoRef.downloadURL(completion: callback)
         }
     }
     
+    func downloadProfilePhoto(
+        userId: String,
+        callback: @escaping (UIImage?, Error?) -> Void) {
+        
+        let removeIndicator = UIUtils.createIndicator(parent: self)
+        
+        let photoRef = profilePhotoStorageRef(userId: userId)
+        
+        photoRef.getData(maxSize: 4 << 20) { (data, error) in
+            guard error == nil,
+                let data = data                
+                else {
+                    removeIndicator()
+                    callback(nil, error);
+                    return
+            }
+            
+            let img = UIImage(data: data)
+            
+            removeIndicator()
+            callback(img, nil)
+        }
+    }
+
     public static func isValid(email: String) -> Bool {
         let rfc5322 = "(?:[\\p{L}0-9!#$%\\&'*+/=?\\^_`{|}~-]+(?:\\.[\\p{L}0-9!#$%\\&'*+/=?\\^_`{|}" +
             "~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\" +
@@ -543,7 +627,9 @@ class AuthUtils:
         "-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])"
         
         do {
-            let regex = try NSRegularExpression(pattern: rfc5322, options: .caseInsensitive)
+            let regex = try NSRegularExpression(
+                pattern: rfc5322,
+                options: .caseInsensitive)
             
             return regex.firstMatch(
                 in: email,
