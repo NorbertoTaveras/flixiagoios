@@ -19,8 +19,6 @@ public class Media: Mappable, ImageProvider {
     var vote_count: Int?
     var vote_average: Float?
     
-    static let dateFormat = "MMMM d, y"
-    
     public required init?(map: Map) {
     }
     
@@ -50,11 +48,7 @@ public class Media: Mappable, ImageProvider {
     }
     
     static func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter(
-            withFormat: dateFormat,
-            locale: Locale.current.identifier)
-        
-        return formatter.string(from: date)
+        return UIUtils.formatDate(from: date)
     }
     
     public func formatReleaseDate() -> String {
@@ -66,10 +60,11 @@ public class Media: Mappable, ImageProvider {
         return "Release Date Unkown"
     }
     
-    func formatGenreList(lookup: GenreList.GenreLookup) -> String {
-        var genreNames: [String] = []
+    public static func formatGenreList(
+        genreIds: [Int64],
+        lookup: GenreList.GenreLookup) -> String {
         
-        let genreIds = getGenreIds()
+        var genreNames: [String] = []
         
         for id in genreIds {
             genreNames.append(lookup[id] ?? "Genre Unknown")
@@ -77,7 +72,15 @@ public class Media: Mappable, ImageProvider {
         
         return genreNames.joined(separator: " • ")
     }
-    
+
+    func formatGenreList(lookup: GenreList.GenreLookup) -> String {
+        let genreIds = getGenreIds()
+        
+        return Media.formatGenreList(
+            genreIds: genreIds,
+            lookup: lookup)
+    }
+
     private func setImage(into: UIImageView, urlText: String?) {
         if let urlText = urlText,
             let url = URL(string: urlText) {
@@ -210,58 +213,178 @@ public class Media: Mappable, ImageProvider {
         return vote_average ?? 0
     }
     
-    public func setupFavoriteButton(into button: UIButton) {
+    public func setupButton(
+        kind: String,
+        into button: UIButton)
+        -> FavoriteRecord? {
+            
         fatalError("Don't call super")
     }
     
-    public func setupFavoriteButton(into button: UIImageView) {
+    @discardableResult
+    public func setupButton(
+        kind: String,
+        into button: UIImageView)
+        -> FavoriteRecord? {
+            
         fatalError("Don't call super")
     }
     
-    public func toggleFavorite(into view: UIButton) {
-        fatalError("Don't call super")
+    public func setupButton(
+        kind: String,
+        type: String,
+        into button: UIButton)
+        -> FavoriteRecord? {
+            
+        return FavoriteRecord.setupButton(
+            kind: kind,
+            type: type,
+            id: id,
+            into: button)
     }
     
-    public func toggleFavorite(into view: UIImageView) {
-        fatalError("Don't call super")
+    public func setupButton(
+        kind: String,
+        type: String,
+        into image: UIImageView)
+        -> FavoriteRecord? {
+            
+        return FavoriteRecord.setupButton(
+            kind: kind,
+            type: type,
+            id: id,
+            into: image)
     }
 
-    private func toggleFavorite(
-        type: String,
-        into view: UIView) {
+    @discardableResult
+    public func setupFavoriteButton(
+        into button: UIButton) -> FavoriteRecord? {
         
-        let isFavorite = FavoriteRecord.getFavorite(
+        return setupButton(kind: "f", into: button)
+    }
+    
+    @discardableResult
+    public func setupFavoriteButton(
+        into image: UIImageView) -> FavoriteRecord? {
+        
+        return setupButton(kind: "f", into: image)
+    }
+    
+    @discardableResult
+    public func setupWatchButton(
+        into button: UIButton) -> FavoriteRecord? {
+        
+        return setupButton(kind: "w", into: button)
+    }
+    
+    @discardableResult
+    public func setupWatchButton(
+        into image: UIImageView) -> FavoriteRecord? {
+        
+        return setupButton(kind: "w", into: image)
+    }
+
+    @discardableResult
+    public func toggle(
+        kind: String,
+        into view: UIButton)
+        -> FavoriteRecord? {
+            
+        fatalError("Don't call super")
+    }
+    
+    @discardableResult
+    public func toggle(
+        kind: String,
+        into view: UIImageView)
+        -> FavoriteRecord? {
+            
+        fatalError("Don't call super")
+    }
+    
+    @discardableResult
+    public func toggleFavorite(
+        into view: UIImageView) -> FavoriteRecord? {
+        
+        return toggle(kind: "f", into: view)
+    }
+    
+    @discardableResult
+    public func toggleFavorite(
+        into button: UIButton)
+        -> FavoriteRecord? {
+            
+        return toggle(kind: "f", into: button)
+    }
+    
+    @discardableResult
+    public func toggleWatch(
+        into button: UIButton)
+        ->FavoriteRecord? {
+            
+        return toggle(kind: "w", into: button)
+    }
+
+    @discardableResult
+    public func toggleWatch(
+        into image: UIImageView)
+        -> FavoriteRecord? {
+            
+        return toggle(kind: "w", into: image)
+    }
+
+    @discardableResult
+    public func toggle(
+        kind: String,
+        type: String,
+        into view: UIView)
+        -> FavoriteRecord? {
+        
+        var record = FavoriteRecord.get(
+            kind: kind,
             type: type,
             id: id)
         
-        FavoriteRecord.setFavorite(
+        let wasOn = record?.favorite ?? false
+        
+        record = FavoriteRecord.set(
+            kind: kind,
             type: type,
             id: id,
-            isFavorite: isFavorite == nil)
+            isFavorite: !wasOn)
         
         if let button = view as? UIButton {
-            FavoriteRecord.setupButton(
+            record = FavoriteRecord.setupButton(
+                kind: kind,
                 type: type,
                 id: id,
                 into: button)
         } else if let image = view as? UIImageView {
-            FavoriteRecord.setupButton(
+            record = FavoriteRecord.setupButton(
+                kind: kind,
                 type: type,
                 id: id,
                 into: image)
         }
+        
+        if let record = record {
+            FirestoreService.set(
+                kind: kind,
+                type: type,
+                media: self,
+                timestamp: record.timestamp,
+                watched: !wasOn) { (error) in
+                    if error != nil {
+                        print(error as Any)
+                    }
+            }
+        }
+            
+        return record
     }
-    
-    public func toggleFavorite(
-           type: String,
-           into view: UIButton) {
-        toggleFavorite(type: type, into: view as UIView)
-    }
-    
-    public func toggleFavorite(
-           type: String,
-           into view: UIImageView) {
-        toggleFavorite(type: type, into: view as UIView)
+
+    public func getMediaType() -> String {
+        fatalError("Don't call super")
     }
     
     public func getNoun(capitalize: Bool, plural: Bool) -> String {
@@ -375,26 +498,79 @@ public class Show: Media, TMDBRecord {
         return number_of_seasons
     }
     
-    public override func setupFavoriteButton(into view: UIButton) {
-        FavoriteRecord.setupButton(
+    public override func setupButton(
+        kind: String,
+        into button: UIButton)
+        -> FavoriteRecord? {
+            
+        return setupButton(kind: kind, type: "tv", into: button)
+    }
+    
+    public override func setupButton(
+        kind: String,
+        into image: UIImageView)
+        -> FavoriteRecord? {
+            
+        return setupButton(kind: kind, type: "tv", into: image)
+    }
+
+    public override func setupFavoriteButton(
+        into view: UIButton) -> FavoriteRecord? {
+        
+        return FavoriteRecord.setupButton(
+            kind: "f",
             type: "tv",
             id: id,
             into: view)
     }
     
-    public override func setupFavoriteButton(into view: UIImageView) {
-        FavoriteRecord.setupButton(
+    public override func setupFavoriteButton(
+        into view: UIImageView) -> FavoriteRecord? {
+        
+        return FavoriteRecord.setupButton(
+            kind: "f",
             type: "tv",
             id: id,
             into: view)
     }
     
-    public override func toggleFavorite(into view: UIButton) {
-        toggleFavorite(type: "tv", into: view)
+    public override func setupWatchButton(
+        into view: UIButton) -> FavoriteRecord? {
+        
+        return FavoriteRecord.setupButton(
+            kind: "w",
+            type: "tv",
+            id: id,
+            into: view)
     }
     
-    public override func toggleFavorite(into view: UIImageView) {
-        toggleFavorite(type: "tv", into: view)
+    public override func setupWatchButton(
+        into view: UIImageView) -> FavoriteRecord? {
+        
+        return FavoriteRecord.setupButton(
+            kind: "w",
+            type: "tv",
+            id: id,
+            into: view)
+    }
+    
+    public override func toggle(
+        kind: String,
+        into button: UIButton) -> FavoriteRecord? {
+        
+        return toggle(kind: kind, type: "tv", into: button)
+    }
+    
+    public override func toggle(
+        kind: String,
+        into image: UIImageView)
+        -> FavoriteRecord? {
+            
+        return toggle(kind: kind, type: "tv", into: image)
+    }
+
+    public override func getMediaType() -> String {
+        return "tv"
     }
     
     public override func getNoun(capitalize: Bool, plural: Bool) -> String {
@@ -505,26 +681,70 @@ public class Movie: Media, TMDBRecord {
         return runtime ?? 0
     }
     
-    public override func setupFavoriteButton(into view: UIButton) {
-        FavoriteRecord.setupButton(
-            type: "movie",
-            id: id,
-            into: view)
+    public override func setupButton(
+        kind: String,
+        into button: UIButton)
+        -> FavoriteRecord? {
+            
+        return setupButton(kind: kind, type: "movie", into: button)
     }
     
-    public override func setupFavoriteButton(into view: UIImageView) {
-        FavoriteRecord.setupButton(
-            type: "movie",
-            id: id,
-            into: view)
+    public override func setupButton(
+        kind: String,
+        into image: UIImageView)
+        -> FavoriteRecord? {
+            
+        return setupButton(kind: kind, type: "movie", into: image)
     }
 
-    public override func toggleFavorite(into view: UIButton) {
-        toggleFavorite(type: "movie", into: view)
+    public override func setupFavoriteButton(
+        into view: UIImageView)
+        -> FavoriteRecord? {
+            
+        return FavoriteRecord.setupFavoriteButton(
+            type: "movie",
+            id: id,
+            into: view)
     }
     
-    public override func toggleFavorite(into view: UIImageView) {
-        toggleFavorite(type: "movie", into: view)
+    public override func setupWatchButton(
+        into view: UIButton)
+        -> FavoriteRecord? {
+            
+        return FavoriteRecord.setupWatchButton(
+            type: "movie",
+            id: id,
+            into: view)
+    }
+    
+    public override func setupWatchButton(
+        into view: UIImageView)
+        -> FavoriteRecord? {
+            
+        return FavoriteRecord.setupWatchButton(
+            type: "movie",
+            id: id,
+            into: view)
+    }
+    
+    public override func toggle(
+        kind: String,
+        into button: UIButton)
+        -> FavoriteRecord? {
+            
+        return toggle(kind: kind, type: "movie", into: button)
+    }
+    
+    public override func toggle(
+        kind: String,
+        into image: UIImageView)
+        -> FavoriteRecord? {
+            
+        return toggle(kind: kind, type: "movie", into: image)
+    }
+
+    public override func getMediaType() -> String {
+        return "movie"
     }
     
     public override func getNoun(capitalize: Bool, plural: Bool) -> String {
