@@ -28,9 +28,7 @@ class AccountViewController: AuthUtils {
         )
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
+    override func viewWillAppear(_ animated: Bool) {
         let views = formViews()
         
         // Should not be able to get here without a user,
@@ -38,6 +36,10 @@ class AccountViewController: AuthUtils {
         guard let user = Auth.auth().currentUser else {
             dismiss(animated: true, completion: nil)
             return
+        }
+
+        downloadProfilePhoto(userId: user.uid) { (img, error) in
+            self.photoView.image = img
         }
         
         views.emailView.text = user.email
@@ -56,7 +58,35 @@ class AccountViewController: AuthUtils {
 
     @IBAction func saveAccountChanges(_ sender: Any) {
         updateAccount { (errors) in
-            print(errors ?? [])
+            if errors == nil {
+                UIUtils.modalDialog(
+                    parent: self,
+                    title: "Success",
+                    message: "Account updated successfully")
+            } else {
+                var message = "";
+                
+                for error in errors ?? [] {
+                    if let error = error
+                        as? AuthUtils.UpdateAccountError {
+                        if error.self == .ValidationFailed {
+                            // Avoid dialog for validation error
+                            return
+                        }
+                    }
+                    
+                    if message.count > 0 {
+                        message += ", "
+                    }
+                    
+                    message += error.localizedDescription
+                }
+                
+                UIUtils.modalDialog(
+                    parent: self,
+                    title: "Error updating account",
+                    message: "Error updating account: (\(message))")
+            }
         }
     }
 
