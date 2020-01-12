@@ -15,8 +15,11 @@ public class ImageScrollerManager:
     UICollectionViewDelegate,
     UICollectionViewDataSource {
     
+    public typealias TapHandler = (ImageProvider?) -> Void
+    
     var collectionView: UICollectionView?
     var items: [ImageProvider]?
+    var tapCallback: TapHandler?
 
     public init(view: UICollectionView) {
         self.collectionView = view
@@ -25,8 +28,9 @@ public class ImageScrollerManager:
         collectionView?.dataSource = self
     }
     
-    public func setItems(items: [ImageProvider]) {
+    public func setItems(items: [ImageProvider], tapCallback: TapHandler?) {
         self.items = items
+        self.tapCallback = tapCallback
         collectionView?.reloadData()
     }
     
@@ -46,8 +50,10 @@ public class ImageScrollerManager:
         guard let item = items?[indexPath.row]
             else { return UICollectionViewCell() }
         
-        collectionCell.setItem(item: item)
-                
+        collectionCell.setItem(item: item) { item in
+            self.tapCallback?(item)
+        }
+        
         return collectionCell
     }
 }
@@ -86,6 +92,10 @@ public class ImageScrollerCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var captionView: UILabel?
     @IBOutlet weak var photoView: UIImageView!
     
+    public typealias TapHandler = (ImageProvider?) -> Void
+    
+    private var currentItem: ImageProvider?
+    private var tappedCallback: TapHandler?
     private var color: UIColor?
     
     public override func awakeFromNib() {
@@ -99,9 +109,23 @@ public class ImageScrollerCollectionViewCell: UICollectionViewCell {
             }
             ratingView.startProgress(to: 0.0, duration: 0.01)
         }
+        
+        let tapRecognizer = UITapGestureRecognizer(
+            target: self,
+            action: #selector(photoTapped))
+        photoView.addGestureRecognizer(tapRecognizer)
+        photoView.isUserInteractionEnabled = true
     }
     
-    public func setItem(item: ImageProvider) {
+    @objc private func photoTapped(sender: UIView) {
+        tappedCallback?(currentItem)
+    }
+    
+    public func setItem(item: ImageProvider,
+                        callback: @escaping (ImageProvider?) -> Void) {
+        currentItem = item
+        tappedCallback = callback
+        
         captionView?.text = item.getImageCaption()
         
         if let urlText = item.getImageUrl(),
