@@ -40,7 +40,7 @@ class FavoriteViewController:
     }
     
     private func loadFavorites() {
-        favorites = FavoriteRecord.getFavorites()
+        favorites = getRecords()
         
         filterFavorites()
     }
@@ -69,6 +69,10 @@ class FavoriteViewController:
             }
         }
         
+        displayedFavorites.sort { (lhs, rhs) -> Bool in
+            return lhs.timestamp > rhs.timestamp
+        }
+        
         favoritesView.reloadData()
     }
     
@@ -76,9 +80,14 @@ class FavoriteViewController:
         loadFavorites()
         
         favoriteListenerId = FavoriteRecord.startListeningForChanges {
-            self.favorites = FavoriteRecord.getFavorites()
+            self.favorites = self.getRecords()
             self.filterFavorites()
         }
+    }
+    
+    public func getRecords() -> [FavoriteRecord] {
+        return FavoriteRecord.getFavorites(
+            onlyFavorite: true)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
