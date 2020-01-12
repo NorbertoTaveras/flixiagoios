@@ -53,6 +53,7 @@ class MediaTableViewCell: UITableViewCell {
     @IBOutlet weak var posterView: UIImageView!
     @IBOutlet weak var ratingView: UICircularProgressRing!
     @IBOutlet weak var favoriteView: UIImageView!
+    @IBOutlet weak var watchView: UIImageView!
     
     public var genreList: GenreList.GenreLookup?
     
@@ -66,15 +67,25 @@ class MediaTableViewCell: UITableViewCell {
         ratingView.outerRingColor = purple
         ratingView.outerRingWidth = 1
         
-        let recognizer = UITapGestureRecognizer(
+        let favoriteTapRecognizer = UITapGestureRecognizer(
             target: self,
             action: #selector(favoriteClick))
+
+        favoriteView.addGestureRecognizer(favoriteTapRecognizer)
         
-        favoriteView.addGestureRecognizer(recognizer)
+        let watchTapRecognizer = UITapGestureRecognizer(
+            target: self,
+            action: #selector(watchClick))
+
+        watchView.addGestureRecognizer(watchTapRecognizer)
     }
     
     @objc func favoriteClick() {
         currentMedia?.toggleFavorite(into: favoriteView)
+    }
+    
+    @objc func watchClick() {
+        currentMedia?.toggleWatch(into: watchView)
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
@@ -116,6 +127,9 @@ class MediaTableViewCell: UITableViewCell {
             color = green
         }
         
+        ratingView.maxValue = 100.0
+        ratingView.outerRingColor = purple
+        ratingView.outerRingWidth = 2.0
         ratingView.innerRingColor = color!
         /*ratingView.fontColor = (media.vote_average ?? 0) >= Float(5.0)
             ? UIColor.black
@@ -142,5 +156,7 @@ class MediaTableViewCell: UITableViewCell {
         }
         
         media.setupFavoriteButton(into: favoriteView)
+        
+        media.setupWatchButton(into: watchView)
     }
 }
