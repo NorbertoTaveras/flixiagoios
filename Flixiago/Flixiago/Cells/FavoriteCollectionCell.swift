@@ -12,7 +12,7 @@ class FavoriteCollectionCell: UICollectionViewCell {
     @IBOutlet weak var posterView: UIImageView!
     @IBOutlet weak var favoriteView: UIImageView!
     
-    var info: FavoriteRecord.TypeIdPair?
+    var info: FavoriteRecord.KindTypeId?
     var media: Media?
     
     override func awakeFromNib() {
@@ -25,7 +25,7 @@ class FavoriteCollectionCell: UICollectionViewCell {
         self.posterView.layer.cornerRadius = 8.0
     }
     
-    func setupCell(info: FavoriteRecord.TypeIdPair) {
+    func setupCell(info: FavoriteRecord.KindTypeId) {
         self.info = info
         
         TMDBService.getMediaDetail(
@@ -33,11 +33,19 @@ class FavoriteCollectionCell: UICollectionViewCell {
             type: info.type) { (media, error) in
                 self.media = media
                 media?.setPosterImage(into: self.posterView)
-                media?.setupFavoriteButton(into: self.favoriteView)
+                media?.setupButton(
+                    kind: info.kind,
+                    into: self.favoriteView)
         }
     }
     
     @objc func favoriteClick() {
-        media?.toggleFavorite(into: favoriteView)
+        guard let info = info
+            else { return }
+        
+        media?.toggle(
+            kind: info.kind,
+            type: info.type,
+            into: favoriteView)
     }
 }

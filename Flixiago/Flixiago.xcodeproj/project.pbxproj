@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0E4BE08F23C3FABC005ABEB2 /* ReviewsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4BE08E23C3FABC005ABEB2 /* ReviewsViewController.swift */; };
+		0E4BE09123C3FB15005ABEB2 /* ReviewTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4BE09023C3FB15005ABEB2 /* ReviewTableViewCell.swift */; };
+		0E4BE09323C421A7005ABEB2 /* CastViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4BE09223C421A7005ABEB2 /* CastViewController.swift */; };
 		0E70859123A7E8160041D5E2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E70859023A7E8160041D5E2 /* AppDelegate.swift */; };
 		0E70859323A7E8160041D5E2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E70859223A7E8160041D5E2 /* SceneDelegate.swift */; };
 		0E70859523A7E8160041D5E2 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E70859423A7E8160041D5E2 /* MainViewController.swift */; };
@@ -39,12 +42,19 @@
 		0E7085DE23A89F5E0041D5E2 /* FavoriteRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E7085DD23A89F5E0041D5E2 /* FavoriteRecord.swift */; };
 		0E7085E023A9A3D70041D5E2 /* NetUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E7085DF23A9A3D70041D5E2 /* NetUtils.swift */; };
 		0E7085E223A9BDC80041D5E2 /* MediaTabbarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E7085E123A9BDC80041D5E2 /* MediaTabbarController.swift */; };
+		0E84104023C43C3A00BE6747 /* RoleTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E84103F23C43C3A00BE6747 /* RoleTableViewCell.swift */; };
+		0E84104223C5853800BE6747 /* WatchlistViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E84104123C5853800BE6747 /* WatchlistViewController.swift */; };
+		0E84104423C69B7600BE6747 /* FirestoreService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E84104323C69B7600BE6747 /* FirestoreService.swift */; };
+		0E84104623C6A94800BE6747 /* SyncInfoRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E84104523C6A94800BE6747 /* SyncInfoRecord.swift */; };
 		0EF2632423AB174800C12B83 /* FavoriteViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EF2632323AB174800C12B83 /* FavoriteViewController.swift */; };
 		0EF2632623AB176B00C12B83 /* FavoriteCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EF2632523AB176B00C12B83 /* FavoriteCollectionCell.swift */; };
 		58ACB1359E354B70ACC0957A /* Pods_Flixiago.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9300F0570DEF137D2B64A614 /* Pods_Flixiago.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0E4BE08E23C3FABC005ABEB2 /* ReviewsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewsViewController.swift; sourceTree = "<group>"; };
+		0E4BE09023C3FB15005ABEB2 /* ReviewTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewTableViewCell.swift; sourceTree = "<group>"; };
+		0E4BE09223C421A7005ABEB2 /* CastViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CastViewController.swift; sourceTree = "<group>"; };
 		0E70858D23A7E8160041D5E2 /* Flixiago.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flixiago.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E70859023A7E8160041D5E2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0E70859223A7E8160041D5E2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -79,6 +89,10 @@
 		0E7085DD23A89F5E0041D5E2 /* FavoriteRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteRecord.swift; sourceTree = "<group>"; };
 		0E7085DF23A9A3D70041D5E2 /* NetUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetUtils.swift; sourceTree = "<group>"; };
 		0E7085E123A9BDC80041D5E2 /* MediaTabbarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaTabbarController.swift; sourceTree = "<group>"; };
+		0E84103F23C43C3A00BE6747 /* RoleTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoleTableViewCell.swift; sourceTree = "<group>"; };
+		0E84104123C5853800BE6747 /* WatchlistViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewController.swift; sourceTree = "<group>"; };
+		0E84104323C69B7600BE6747 /* FirestoreService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreService.swift; sourceTree = "<group>"; };
+		0E84104523C6A94800BE6747 /* SyncInfoRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncInfoRecord.swift; sourceTree = "<group>"; };
 		0EF2632323AB174800C12B83 /* FavoriteViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteViewController.swift; sourceTree = "<group>"; };
 		0EF2632523AB176B00C12B83 /* FavoriteCollectionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteCollectionCell.swift; sourceTree = "<group>"; };
 		9300F0570DEF137D2B64A614 /* Pods_Flixiago.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Flixiago.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -143,6 +157,7 @@
 				0E7085BE23A7F8720041D5E2 /* Cast.swift */,
 				0E7085C023A7F88E0041D5E2 /* Trailer.swift */,
 				0E7085DD23A89F5E0041D5E2 /* FavoriteRecord.swift */,
+				0E84104523C6A94800BE6747 /* SyncInfoRecord.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -169,6 +184,9 @@
 				0E7085D723A804830041D5E2 /* MediaDetailViewController.swift */,
 				0E7085E123A9BDC80041D5E2 /* MediaTabbarController.swift */,
 				0EF2632323AB174800C12B83 /* FavoriteViewController.swift */,
+				0E4BE08E23C3FABC005ABEB2 /* ReviewsViewController.swift */,
+				0E4BE09223C421A7005ABEB2 /* CastViewController.swift */,
+				0E84104123C5853800BE6747 /* WatchlistViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -189,6 +207,7 @@
 				0E7085B223A7F7A10041D5E2 /* TMDBUrls.swift */,
 				0E7085B423A7F7E00041D5E2 /* ImageProvider.swift */,
 				0E7085B623A7F7F50041D5E2 /* VideoProvider.swift */,
+				0E84104323C69B7600BE6747 /* FirestoreService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -210,6 +229,8 @@
 				0E7085D123A7FFD60041D5E2 /* MediaTableViewCell.swift */,
 				0E7085D923A804F70041D5E2 /* ImageScrollerCollectionViewCell.swift */,
 				0EF2632523AB176B00C12B83 /* FavoriteCollectionCell.swift */,
+				0E4BE09023C3FB15005ABEB2 /* ReviewTableViewCell.swift */,
+				0E84103F23C43C3A00BE6747 /* RoleTableViewCell.swift */,
 			);
 			path = Cells;
 			sourceTree = "<group>";
@@ -353,27 +374,34 @@
 				0E7085C123A7F88E0041D5E2 /* Trailer.swift in Sources */,
 				0E7085E023A9A3D70041D5E2 /* NetUtils.swift in Sources */,
 				0E7085BB23A7F8340041D5E2 /* Certification.swift in Sources */,
+				0E84104623C6A94800BE6747 /* SyncInfoRecord.swift in Sources */,
 				0E7085B123A7F76B0041D5E2 /* TMDBService.swift in Sources */,
 				0E7085DA23A804F70041D5E2 /* ImageScrollerCollectionViewCell.swift in Sources */,
 				0E7085CB23A7FA900041D5E2 /* SignUpViewController.swift in Sources */,
+				0E4BE09123C3FB15005ABEB2 /* ReviewTableViewCell.swift in Sources */,
+				0E4BE08F23C3FABC005ABEB2 /* ReviewsViewController.swift in Sources */,
 				0E7085D623A804530041D5E2 /* ShowsViewController.swift in Sources */,
 				0E7085C323A7F8C00041D5E2 /* AuthUtils.swift in Sources */,
+				0E84104023C43C3A00BE6747 /* RoleTableViewCell.swift in Sources */,
 				0E7085DE23A89F5E0041D5E2 /* FavoriteRecord.swift in Sources */,
 				0E7085C923A7FA460041D5E2 /* SignInViewController.swift in Sources */,
 				0E7085BF23A7F8720041D5E2 /* Cast.swift in Sources */,
 				0E7085E223A9BDC80041D5E2 /* MediaTabbarController.swift in Sources */,
+				0E4BE09323C421A7005ABEB2 /* CastViewController.swift in Sources */,
 				0E70859523A7E8160041D5E2 /* MainViewController.swift in Sources */,
 				0E7085D423A803FC0041D5E2 /* MoviesViewController.swift in Sources */,
 				0E7085C723A7F9350041D5E2 /* ImageScrollerManager.swift in Sources */,
 				0EF2632423AB174800C12B83 /* FavoriteViewController.swift in Sources */,
 				0E7085CD23A7FB520041D5E2 /* AccountViewController.swift in Sources */,
 				0E70859123A7E8160041D5E2 /* AppDelegate.swift in Sources */,
+				0E84104423C69B7600BE6747 /* FirestoreService.swift in Sources */,
 				0E7085BD23A7F8560041D5E2 /* Review.swift in Sources */,
 				0E7085AE23A7F5CA0041D5E2 /* Media.swift in Sources */,
 				0E7085B323A7F7A10041D5E2 /* TMDBUrls.swift in Sources */,
 				0E7085B523A7F7E00041D5E2 /* ImageProvider.swift in Sources */,
 				0EF2632623AB176B00C12B83 /* FavoriteCollectionCell.swift in Sources */,
 				0E7085D823A804830041D5E2 /* MediaDetailViewController.swift in Sources */,
+				0E84104223C5853800BE6747 /* WatchlistViewController.swift in Sources */,
 				0E7085CF23A7FBC50041D5E2 /* MediaViewBaseController.swift in Sources */,
 				0E7085D223A7FFD60041D5E2 /* MediaTableViewCell.swift in Sources */,
 				0E70859323A7E8160041D5E2 /* SceneDelegate.swift in Sources */,
