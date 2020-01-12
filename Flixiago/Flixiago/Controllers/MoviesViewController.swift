@@ -39,41 +39,23 @@ class MoviesViewController: MediaViewBaseController {
             TMDBService.searchMovies(
                 genreId: genreId,
                 page: page) { (movies, error) in
-                    if let error = error {
-                        print("Error: \(error)")
-                    } else if let movies = movies {
-                        print("Response \(movies)")
-                        self.append(media: movies.results)
-                    } else {
-                        print("nil response and no error!")
-                    }
+                    self.append(media: movies?.results ?? [],
+                                error: error)
             }
         } else if let query = query {
             TMDBService.searchMovies(
                 query: query,
                 page: page) { (movies, error) in
-                    if let error = error {
-                        print("Error: \(error)")
-                    } else if let movies = movies {
-                        print("Response \(movies)")
-                        self.append(media: movies.results)
-                    } else {
-                        print("nil response and no error!")
-                    }
+                    self.append(media: movies?.results ?? [],
+                                error: error)
             }
         } else {
             TMDBService.getMovies(
                 sortBy: TMDBService.movieSortBys[currentSortBy].sortBy,
                 page: page,
                 language: TMDBService.LANGUAGE) { (movies, error) in
-                    if let error = error {
-                        print("Error: \(error)")
-                    } else if let movies = movies {
-                        print("Response \(movies)")
-                        self.append(media: movies.results)
-                    } else {
-                        print("nil response and no error!")
-                    }
+                    self.append(media: movies?.results ?? [],
+                                error: error)
             }
         }
     }
