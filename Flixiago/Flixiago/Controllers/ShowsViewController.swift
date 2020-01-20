@@ -15,6 +15,7 @@ class ShowsViewController: MediaViewBaseController {
     @IBOutlet weak var sortBySegment: UISegmentedControl!
     @IBOutlet weak var searchBarView: UISearchBar!
     @IBOutlet weak var sortByView: UILabel!
+    @IBOutlet weak var certificationMenuView: UIImageView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -27,8 +28,10 @@ class ShowsViewController: MediaViewBaseController {
         initTable(table: moviesTable)
         initSearch(searchBar: searchBarView)
         initGenreFilter(genreFilterButton: genresMenuView)
-        
         changeSortBy(to: 0)
+        initCertificationMenu(menuButton: certificationMenuView) {
+            self.initLoad()
+        }
     }
     
     override func loadMore(page: Int, query: String?, genreId: Int64?) {
@@ -78,6 +81,10 @@ class ShowsViewController: MediaViewBaseController {
         callback: @escaping (TMDBService.GenreLookup?, Error?) -> Void) {
         
         TMDBService.getShowGenres(callback: callback)
+    }
+    
+    override func getMediaType() -> String {
+        return "tv"
     }
 
     /*
