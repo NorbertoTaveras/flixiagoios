@@ -18,7 +18,7 @@ public class ReviewResponse: TMDBRecord {
     var total_results: Int?
     
     public required init?(map: Map) {
-        
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -36,7 +36,7 @@ class Review: TMDBRecord {
     var content: String?
     
     required init?(map: Map) {
-        
+        mapping(map: map)
     }
     
     func mapping(map: Map) {
