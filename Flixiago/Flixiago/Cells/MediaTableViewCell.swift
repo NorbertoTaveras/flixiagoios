@@ -61,31 +61,11 @@ class MediaTableViewCell: UITableViewCell {
     
     private var color: UIColor?
     
+    private var watchToggler: Media.FavoriteToggler?
+    private var favoriteToggler: Media.FavoriteToggler?
+
     override func awakeFromNib() {
         super.awakeFromNib()
-        self.ratingView.maxValue = 100.0
-        ratingView.outerRingColor = purple
-        ratingView.outerRingWidth = 1
-        
-        let favoriteTapRecognizer = UITapGestureRecognizer(
-            target: self,
-            action: #selector(favoriteClick))
-
-        favoriteView.addGestureRecognizer(favoriteTapRecognizer)
-        
-        let watchTapRecognizer = UITapGestureRecognizer(
-            target: self,
-            action: #selector(watchClick))
-
-        watchView.addGestureRecognizer(watchTapRecognizer)
-    }
-    
-    @objc func favoriteClick() {
-        currentMedia?.toggleFavorite(into: favoriteView)
-    }
-    
-    @objc func watchClick() {
-        currentMedia?.toggleWatch(into: watchView)
     }
 
     override func setSelected(_ selected: Bool, animated: Bool) {
@@ -110,37 +90,13 @@ class MediaTableViewCell: UITableViewCell {
             }
             
             self.genresView.text = media.formatGenreList(lookup: genreList)
+            
         }
         
-        /*let color = (media.vote_average ?? 0) >= Float(5.0)
-            ? MediaTableViewCell.green
-            : MediaTableViewCell.red; */
-        let score = 100.0 * CGFloat((media.vote_average ?? 0) / Float(10.0))
-        
-        if score < 40 {
-            color = red
-        } else if score < 60 {
-            color = UIColor.orange
-        } else if score < 75 {
-            color = yellow
-        } else {
-            color = green
-        }
-        
-        ratingView.maxValue = 100.0
-        ratingView.outerRingColor = purple
-        ratingView.outerRingWidth = 2.0
-        ratingView.innerRingColor = color!
-        /*ratingView.fontColor = (media.vote_average ?? 0) >= Float(5.0)
-            ? UIColor.black
-            : color */
-
-        ratingView.startProgress(to: 0, duration: 0.001) {
-            self.ratingView.startProgress(
-                to: 100.0 * CGFloat((media.vote_average ?? 0) / Float(10.0)),
-                duration: 1.0)
-        }
-        
+        UIUtils.setupRatingRing(
+            ringView: ratingView,
+            vote_average: media.vote_average)
+                
         media.getCertification() { (cert, error) in
             if self.currentMedia?.id != media.id {
                 return
@@ -155,8 +111,10 @@ class MediaTableViewCell: UITableViewCell {
             self.certificationView.text = formattedCert
         }
         
-        media.setupFavoriteButton(into: favoriteView)
+        watchToggler = media.autoButton(
+            kind: "w", into: watchView)
         
-        media.setupWatchButton(into: watchView)
+        favoriteToggler = media.autoButton(
+            kind: "f", into: favoriteView)
     }
 }
