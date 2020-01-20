@@ -18,6 +18,7 @@ public class MovieCertification: TMDBRecord, Certification {
     var results: [MovieCertificationResult]?
 
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -38,8 +39,12 @@ public class MovieCertification: TMDBRecord, Certification {
                 else { continue }
             
             for release in release_dates {
-                return release.certification
+                if !(release.certification?.isEmpty ?? true) {
+                    return release.certification
+                }
             }
+            
+            break
         }
         
         return nil
@@ -51,6 +56,7 @@ public class ShowCertification: TMDBRecord, Certification {
     var results: [TVCertificationResult]?
 
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -77,6 +83,7 @@ public class MovieCertificationResult: TMDBRecord {
     var release_dates: [MovieCertificationReleaseDate]?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -90,6 +97,7 @@ public class TVCertificationResult: TMDBRecord {
     var certification: String?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -108,5 +116,33 @@ public class MovieCertificationReleaseDate: TMDBRecord {
     public func mapping(map: Map) {
         certification <- map["certification"]
         release_date <- map["release_date"]
+    }
+}
+
+public class CertificationListEntry: TMDBRecord {
+    var certification: String?
+    var meaning: String?
+    var order: Int?
+    
+    public required init?(map: Map) {
+        mapping(map: map)
+    }
+    
+    public func mapping(map: Map) {
+        certification <- map["certification"]
+        meaning <- map["meaning"]
+        order <- map["order"]
+    }
+}
+
+public class CertificationListResponse: TMDBRecord {
+    var certifications: [String: [CertificationListEntry]]?
+    
+    public required init?(map: Map) {
+        mapping(map: map)
+    }
+    
+    public func mapping(map: Map) {
+        certifications <- map["certifications"]
     }
 }
