@@ -16,6 +16,7 @@ public class Genre: TMDBRecord {
     var name: String?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -30,6 +31,7 @@ public class GenreList: TMDBRecord {
     public typealias GenreLookup = [Int64: String]
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
