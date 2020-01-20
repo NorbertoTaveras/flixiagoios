@@ -15,11 +15,11 @@ class MoviesViewController: MediaViewBaseController {
     @IBOutlet weak var sortBySegment: UISegmentedControl!
     @IBOutlet weak var searchView: UISearchBar!
     @IBOutlet weak var genreMenuView: UIImageView!
+    @IBOutlet weak var certificationMenuView: UIImageView!
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         
         initSortBySegment(
             sortBySegment: sortBySegment,
@@ -29,22 +29,23 @@ class MoviesViewController: MediaViewBaseController {
         initTable(table: moviesTable)
         initSearch(searchBar: searchView)
         initGenreFilter(genreFilterButton: genreMenuView)
-        
         changeSortBy(to: 0)
-        
+        initCertificationMenu(menuButton: certificationMenuView) {
+            self.initLoad()
+        }
     }
     
     override func loadMore(page: Int, query: String?, genreId: Int64?) {
-        if let genreId = genreId {
+        if let query = query {
             TMDBService.searchMovies(
-                genreId: genreId,
+                query: query,
                 page: page) { (movies, error) in
                     self.append(media: movies?.results ?? [],
                                 error: error)
             }
-        } else if let query = query {
+        } else if let genreId = genreId {
             TMDBService.searchMovies(
-                query: query,
+                genreId: genreId,
                 page: page) { (movies, error) in
                     self.append(media: movies?.results ?? [],
                                 error: error)
@@ -83,10 +84,13 @@ class MoviesViewController: MediaViewBaseController {
         }
     }
     
+    override func getMediaType() -> String {
+        return "movie"
+    }
+    
     override func getGenres(
         callback: @escaping (TMDBService.GenreLookup?, Error?) -> Void) {
         
         TMDBService.getMovieGenres(callback: callback)
     }
-
 }
