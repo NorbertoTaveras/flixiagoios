@@ -20,6 +20,7 @@ public class Media: Mappable, ImageProvider {
     var vote_average: Float?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -213,23 +214,7 @@ public class Media: Mappable, ImageProvider {
         return vote_average ?? 0
     }
     
-    public func setupButton(
-        kind: String,
-        into button: UIButton)
-        -> FavoriteRecord? {
-            
-        fatalError("Don't call super")
-    }
-    
     @discardableResult
-    public func setupButton(
-        kind: String,
-        into button: UIImageView)
-        -> FavoriteRecord? {
-            
-        fatalError("Don't call super")
-    }
-    
     public func setupButton(
         kind: String,
         type: String,
@@ -243,63 +228,146 @@ public class Media: Mappable, ImageProvider {
             into: button)
     }
     
+    @discardableResult
     public func setupButton(
         kind: String,
         type: String,
         into image: UIImageView)
         -> FavoriteRecord? {
-            
+        
         return FavoriteRecord.setupButton(
             kind: kind,
             type: type,
             id: id,
             into: image)
     }
+    
+    public class FavoriteToggler: NSObject {
+        let media: Media?
+        let id: Int64?
+        let kind: String
+        let type: String
+        let view: UIView
+        
+        init(kind: String,
+             type: String,
+             media: Media?,
+             id: Int64?,
+             into view: UIView) {
+            self.kind = kind
+            self.type = type
+            self.media = media
+            self.id = id
+            self.view = view
+            super.init()
+            setupTap()
+        }
+        
+        @objc public func toggleTapped(sender: UITapGestureRecognizer) {
+            if let media = media {
+                // Show and movie need the full media object
+                if let button = view as? UIButton {
+                    media.toggle(kind: kind, into: button)
+                } else if let imageView = view as? UIImageView {
+                    media.toggle(kind: kind, into: imageView)
+                }
+            } else if let id = id {
+                // No detail needed
+                FavoriteRecord.toggle(
+                    kind: kind,
+                    type: type,
+                    id: id,
+                    into: view)
+            } else {
+                fatalError("No idea what to do")
+            }
+        }
+        
+        func setupTap() {
+            let tapGesture = UITapGestureRecognizer(
+                target: self,
+                action: #selector(toggleTapped))
+            
+            view.isUserInteractionEnabled = true
+            view.addGestureRecognizer(tapGesture)
+        }
+    }
+    
+    // Setup a favorite/watch button, and attach tap handlers
+    public func autoButton(
+        kind: String,
+        into view: UIView) -> FavoriteToggler {
+        
+        let type = getMediaType()
+        
+        if let button = view as? UIButton {
+            setupButton(
+                kind: kind,
+                type: type,
+                into: button)
+        } else if let imageView = view as? UIImageView {
+            setupButton(
+                kind: kind,
+                type: type,
+                into: imageView)
+        } else {
+            fatalError("Unhandled view type")
+        }
+        
+        let toggler = FavoriteToggler(
+            kind: kind,
+            type: type,
+            media: self,
+            id: nil,
+            into: view)
+        
+        return toggler
+    }
 
     @discardableResult
     public func setupFavoriteButton(
         into button: UIButton) -> FavoriteRecord? {
         
-        return setupButton(kind: "f", into: button)
+        return setupButton(kind: "f", type: getMediaType(), into: button)
     }
     
     @discardableResult
     public func setupFavoriteButton(
         into image: UIImageView) -> FavoriteRecord? {
         
-        return setupButton(kind: "f", into: image)
+        return setupButton(kind: "f", type: getMediaType(), into: image)
     }
     
     @discardableResult
     public func setupWatchButton(
         into button: UIButton) -> FavoriteRecord? {
         
-        return setupButton(kind: "w", into: button)
+        return setupButton(kind: "w", type: getMediaType(), into: button)
     }
     
     @discardableResult
     public func setupWatchButton(
         into image: UIImageView) -> FavoriteRecord? {
         
-        return setupButton(kind: "w", into: image)
+        return setupButton(kind: "w", type: getMediaType(), into: image)
     }
 
     @discardableResult
     public func toggle(
         kind: String,
-        into view: UIButton)
+        into button: UIButton)
         -> FavoriteRecord? {
             
-        fatalError("Don't call super")
+        return toggle(kind: kind, type: getMediaType(), into: button)
     }
     
     @discardableResult
     public func toggle(
         kind: String,
-        into view: UIImageView)
+        into imageView: UIImageView)
         -> FavoriteRecord? {
             
-        fatalError("Don't call super")
+        return toggle(kind: kind, type: getMediaType(), into: imageView)
     }
     
     @discardableResult
@@ -372,6 +440,7 @@ public class Media: Mappable, ImageProvider {
                 kind: kind,
                 type: type,
                 media: self,
+                id: nil,
                 timestamp: record.timestamp,
                 watched: !wasOn) { (error) in
                     if error != nil {
@@ -396,12 +465,14 @@ public class Show: Media, TMDBRecord {
     var name: String?
     var first_air_date: String?
     var genre_ids: [Int64]?
+    var genres: [Genre]?
     var number_of_episodes: Int?
     var number_of_seasons: Int?
+    var seasons: [ShowSeason]?
     
     public static let type = "tv"
     public static let noun = "TV Show"
-
+    
     public required init?(map: Map) {
         super.init(map: map)
     }
@@ -410,9 +481,11 @@ public class Show: Media, TMDBRecord {
         super.mapping(map: map)
         name <- map["name"]
         first_air_date <- map["first_air_date"]
-        genre_ids <- map["genre_ids"]
+        genres <- map["genres"]
         number_of_seasons <- map["number_of_seasons"]
         number_of_episodes <- map["number_of_episodes"]
+        seasons <- map["seasons"]
+        genre_ids <- map["genre_ids"]
     }
     
     public override func getTitle() -> String {
@@ -420,7 +493,17 @@ public class Show: Media, TMDBRecord {
     }
     
     public override func getGenreIds() -> [Int64] {
-        return genre_ids ?? []
+        if let genre_ids = genre_ids {
+            return genre_ids
+        }
+        
+        genre_ids = []
+        
+        for genre in genres ?? [] {
+            genre_ids!.append(genre.id)
+        }
+        
+        return genre_ids!
     }
     
     public override func getReleaseDate() -> Date? {
@@ -497,23 +580,8 @@ public class Show: Media, TMDBRecord {
     public override func getSeasonCount() -> Int? {
         return number_of_seasons
     }
-    
-    public override func setupButton(
-        kind: String,
-        into button: UIButton)
-        -> FavoriteRecord? {
-            
-        return setupButton(kind: kind, type: "tv", into: button)
-    }
-    
-    public override func setupButton(
-        kind: String,
-        into image: UIImageView)
-        -> FavoriteRecord? {
-            
-        return setupButton(kind: kind, type: "tv", into: image)
-    }
 
+    @discardableResult
     public override func setupFavoriteButton(
         into view: UIButton) -> FavoriteRecord? {
         
@@ -524,6 +592,7 @@ public class Show: Media, TMDBRecord {
             into: view)
     }
     
+    @discardableResult
     public override func setupFavoriteButton(
         into view: UIImageView) -> FavoriteRecord? {
         
@@ -534,6 +603,7 @@ public class Show: Media, TMDBRecord {
             into: view)
     }
     
+    @discardableResult
     public override func setupWatchButton(
         into view: UIButton) -> FavoriteRecord? {
         
@@ -544,6 +614,7 @@ public class Show: Media, TMDBRecord {
             into: view)
     }
     
+    @discardableResult
     public override func setupWatchButton(
         into view: UIImageView) -> FavoriteRecord? {
         
@@ -554,6 +625,7 @@ public class Show: Media, TMDBRecord {
             into: view)
     }
     
+    @discardableResult
     public override func toggle(
         kind: String,
         into button: UIButton) -> FavoriteRecord? {
@@ -561,6 +633,7 @@ public class Show: Media, TMDBRecord {
         return toggle(kind: kind, type: "tv", into: button)
     }
     
+    @discardableResult
     public override func toggle(
         kind: String,
         into image: UIImageView)
@@ -623,7 +696,7 @@ public class Movie: Media, TMDBRecord {
         
         TMDBService.getMovieGenres(callback: callback)
     }
-    
+
     public override func getReviews(
         page: Int,
         callback: @escaping (ReviewResponse?, Error?) -> Void) {
@@ -679,22 +752,6 @@ public class Movie: Media, TMDBRecord {
     // Returns the run time in minutes
     public override func getRunTime() -> Int {
         return runtime ?? 0
-    }
-    
-    public override func setupButton(
-        kind: String,
-        into button: UIButton)
-        -> FavoriteRecord? {
-            
-        return setupButton(kind: kind, type: "movie", into: button)
-    }
-    
-    public override func setupButton(
-        kind: String,
-        into image: UIImageView)
-        -> FavoriteRecord? {
-            
-        return setupButton(kind: kind, type: "movie", into: image)
     }
 
     public override func setupFavoriteButton(
@@ -760,6 +817,7 @@ public class MoviesResponse: TMDBRecord {
     var total_pages: Int = 0
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -777,6 +835,7 @@ public class ShowsResponse: TMDBRecord {
     var total_pages: Int = 0
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -784,5 +843,141 @@ public class ShowsResponse: TMDBRecord {
         results <- map["results"]
         total_results <- map["total_results"]
         total_pages <- map["total_pages"]
+    }
+}
+
+public class ShowSeason: TMDBRecord, ImageProvider {
+    var id: Int64 = 0
+    var air_date: String?
+    var episode_count: Int?
+    var name: String?
+    var overview: String?
+    var poster_path: String?
+    var season_number: Int?
+    
+    public required init?(map: Map) {
+        mapping(map: map)
+    }
+    
+    public func mapping(map: Map) {
+        id <- map["id"]
+        air_date <- map["air_date"]
+        episode_count <- map["episode_count"]
+        name <- map["name"]
+        overview <- map["overview"]
+        poster_path <- map["poster_path"]
+        season_number <- map["season_number"]
+    }
+    
+    public func getImageUrl() -> String? {
+        guard let poster_path = poster_path
+            else { return nil }
+        
+        return TMDBUrls.getPosterUrl(forWidth: 72, path: poster_path)
+    }
+    
+    public func getImageCaption() -> String? {
+        return name
+    }
+    
+    public func getImageRating() -> Float? {
+        return nil
+    }
+}
+
+public class ShowSeasonResponse: TMDBRecord, ImageProvider {
+    var id: Int64?
+    var episodes: [ShowEpisode]?
+    var name: String?
+    var poster_path: String?
+    
+    public required init?(map: Map) {
+        mapping(map: map)
+    }
+    
+    public func mapping(map: Map) {
+        id <- map["id"]
+        episodes <- map["episodes"]
+        name <- map["name"]
+        poster_path <- map["poster_path"]
+    }
+    
+    public func getImageUrl() -> String? {
+        guard let poster_path = poster_path
+            else { return nil }
+        
+        return TMDBUrls.getPosterUrl(
+            forWidth: 72,
+            path: poster_path)
+    }
+    
+    public func getImageCaption() -> String? {
+        return name
+    }
+    
+    public func getImageRating() -> Float? {
+        return nil
+    }
+}
+
+public class ShowEpisode: TMDBRecord, ImageProvider {
+    var id: Int64 = 0
+    var air_date: String?
+    var name: String?
+    var overview: String?
+    var vote_average: Float?
+    var vote_count: Int64?
+    var still_path: String?
+    var episode_number: Int?
+    
+    public required init?(map: Map) {
+        mapping(map: map)
+    }
+    
+    public func mapping(map: Map) {
+        id <- map["id"]
+        air_date <- map["air_date"]
+        name <- map["name"]
+        overview <- map["overview"]
+        vote_average <- map["vote_average"]
+        vote_count <- map["vote_count"]
+        still_path <- map["still_path"]
+        episode_number <- map["episode_number"]
+    }
+    
+    public func getImageUrl() -> String? {
+        guard let still_path = still_path
+            else { return nil }
+        
+        return TMDBUrls.getPosterUrl(
+            forWidth: 72,
+            path: still_path)
+    }
+    
+    public func getImageCaption() -> String? {
+        return name
+    }
+    
+    public func getImageRating() -> Float? {
+        return vote_average
+    }
+    
+    public func autoButton(into view: UIView)
+        -> Media.FavoriteToggler {
+        
+        FavoriteRecord.setupButton(
+            kind: "e",
+            type: "tv",
+            id: id,
+            into: view)
+        
+        let toggler = Media.FavoriteToggler(
+            kind: "e",
+            type: "tv",
+            media: nil,
+            id: id,
+            into: view)
+        
+        return toggler
     }
 }
