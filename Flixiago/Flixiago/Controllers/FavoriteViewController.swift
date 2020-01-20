@@ -27,6 +27,7 @@ class FavoriteViewController:
     var displayedFavorites: [FavoriteRecord] = []
     var favoriteListenerId: Int?
     var viewType: ViewType = .ALL
+    var selectedMedia: Media?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -118,6 +119,82 @@ class FavoriteViewController:
         cell.setupCell(info: info)
         
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,
+                        didSelectItemAt indexPath: IndexPath) {
+        let record = displayedFavorites[indexPath.row]
+        openSelectedFavorite(record: record)
+    }
+    
+    func openSelectedFavorite(record: FavoriteRecord) {
+        guard let info = record.parseKey()
+            else { return }
+        
+        TMDBService.getMediaDetail(
+            id: info.id,
+            type: info.type) { (media, error) in
+                
+                if let media = media {
+                    self.open(media: media)
+                } else {
+                    UIUtils.modalDialog(
+                        parent: self,
+                        title: "Error",
+                        message: "Failed to get media details: " +
+                        (error?.localizedDescription
+                        ?? "<unknown error>"))
+                }
+        }
+    }
+    
+    func open(media: Media) {
+        switch media.getMediaType() {
+        case "tv":
+            selectedMedia = media
+            
+            performSegue(
+                withIdentifier: "MediaSeasonsView",
+                sender: self)
+            break
+            
+        case "movie":
+            selectedMedia = media
+            
+            performSegue(
+                withIdentifier: "MediaDetailView",
+                sender: self)
+            break
+            
+        default:
+            fatalError("Unhandled media type")
+        }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue,
+                          sender: Any?) {
+        switch segue.identifier {
+        case "MediaDetailView":
+            guard let destination = segue.destination
+                as? MedialDetailViewController
+                else { return }
+            
+            destination.media = selectedMedia
+            break
+            
+        case "MediaSeasonsView":
+            guard let destination = segue.destination
+                as? SeasonsViewController
+                else { return }
+            
+            destination.show = selectedMedia as? Show
+            destination.episodes = nil
+            break
+
+        default:
+            fatalError("Unhandled segue ID")
+            break
+        }
     }
     
     // MARK: - Segmented Control
