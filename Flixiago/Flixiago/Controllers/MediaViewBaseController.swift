@@ -20,6 +20,8 @@ class MediaViewBaseController:
     typealias GenrePair = (name: String, id: Int64)
 
     private var media: [Media] = []
+    private var displayedMedia: [Media] = []
+    
     private var searchBarView: UISearchBar?
     private var genreFilterButton: UIImageView?
 
@@ -37,6 +39,25 @@ class MediaViewBaseController:
     
     private var tablePlaceholder: UIUtils.PlaceholderView?
     
+    private var certificationMenuButton: UIView?
+    private var certificationList: [CertificationListEntry]?
+    private var certificationLookup: [String: CertificationListEntry]?
+    private var certificationLimit: Int = 5
+    
+    private var certCache: [Int64: Any] = [:]
+    
+    private let activeFilterColor = UIColor(
+        red: CGFloat(0xe8) / CGFloat(255.0),
+        green: CGFloat(0xc5) / CGFloat(255.0),
+        blue: CGFloat(0x46) / CGFloat(255.0),
+        alpha: CGFloat(1.0))
+
+    private let inactiveFilterColor = UIColor(
+        red: CGFloat(0x4e) / 255.0,
+        green: CGFloat(0x32) / 255.0,
+        blue: CGFloat(0x8e) / 255.0,
+        alpha: CGFloat(1.0))
+
     weak var table: UITableView!
 
     func loadMore(page: Int, query: String?, genreId: Int64?) {
@@ -50,7 +71,7 @@ class MediaViewBaseController:
         tablePlaceholder = UIUtils.PlaceholderView(
             parent: table,
             text: "Error getting results")
-
+        
         table.reloadData()
     }
     
@@ -70,7 +91,8 @@ class MediaViewBaseController:
         table.dataSource = self
         table.prefetchDataSource = self
 
-        loadMore(page: page, query: nil, genreId: currentGenreId)
+        
+        //loadMore(page: page, query: nil, genreId: currentGenreId)
     }
     
     func initSortBySegment(sortBySegment: UISegmentedControl,
@@ -84,6 +106,124 @@ class MediaViewBaseController:
             for: .selected)
         for (index,info) in fromSortBys.enumerated() {
             sortBySegment.setTitle(info.text, forSegmentAt: index)
+        }
+    }
+    
+    func initLoad() {
+        reset()
+        loadMore(page: page, query: currentQuery(), genreId: currentGenreId)
+    }
+    
+    func initCertificationMenu(
+        menuButton: UIView,
+        callback: @escaping () -> Void) {
+        
+        self.certificationMenuButton = menuButton
+
+        getCertificationList(
+        forCountry: TMDBService.COUNTRY) { (list, error) in
+            self.certificationList = list
+            
+            self.certificationLookup = [:]
+            for certification in list ?? [] {
+                guard let letter = certification.certification
+                    else { continue }
+                
+                self.certificationLookup![letter] = certification
+            }
+            
+            let gestureTab = UITapGestureRecognizer(
+                target: self,
+                action: #selector(self.certificationButtonClicked))
+            menuButton.addGestureRecognizer(gestureTab)
+            menuButton.isUserInteractionEnabled = true
+            
+            callback()
+        }
+    }
+    
+    @objc func certificationButtonClicked(sender: UIView) {
+        let sheet = UIAlertController(
+            title: "Choose a certification limit",
+            message: nil,
+            preferredStyle: .actionSheet)
+        
+        var actions: [UIAlertAction] = []
+        
+        guard let certs = certificationList
+            else { return }
+        
+        let sortedCerts = certs.sorted { (lhs, rhs) -> Bool in
+            return (lhs.order ?? 0) < (rhs.order ?? 0)
+        }
+
+        let certificationButtonHandler: (UIAlertAction) -> Void
+        certificationButtonHandler = { action in
+            let index = actions.firstIndex { candidate in
+                return candidate == action
+            }
+            
+            guard let validIndex = index
+                else { return }
+            
+            self.changeCertificationFilter(
+                entry: sortedCerts[validIndex])
+        }
+
+        for cert in certs {
+            let action = UIAlertAction(
+                title: cert.certification,
+                style: .default,
+                handler: certificationButtonHandler)
+    
+            actions.append(action)
+            sheet.addAction(action)
+        }
+        
+        let cancel = UIAlertAction(
+            title: "Cancel",
+            style: .cancel) { (action) in
+                sheet.dismiss(animated: true, completion: nil)
+        }
+        sheet.addAction(cancel)
+        
+        self.present(sheet, animated: true, completion: nil)
+    }
+    
+    typealias CertCallback = (String?, Error?) -> Void
+    
+    func getCachedCert(
+        media: Media,
+        callback: @escaping CertCallback) {
+        
+        let entry = certCache[media.id]
+        
+        if var pendingList = entry as? [CertCallback] {
+            // It is an array of callbacks, add to the pending list
+            pendingList.append(callback)
+            return
+        } else if let error = entry as? Error {
+            callback(nil, error)
+        } else if let certification = entry as? String {
+            // It is fully resolved to a certification
+            callback(certification, nil)
+            return
+        }
+        
+        // Create pending list
+        certCache[media.id] = [callback]
+        
+        media.getCertification { (certification, error) in
+            let callbacks = self.certCache[media.id]
+                as? [CertCallback] ?? []
+            
+            self.certCache[media.id] = error == nil
+                ? certification
+                : error
+
+            for pendingCallback in callbacks {
+                pendingCallback(certification, error)
+            }
         }
     }
     
@@ -124,6 +264,15 @@ class MediaViewBaseController:
                 return a.name < b.name
             }
             
+            let all = UIAlertAction(
+                title: "All",
+                style: .default) { (action) in
+                    self.clearGenreFilter()
+                    self.initLoad()
+                    sheet.dismiss(animated: true, completion: nil)
+            }
+            sheet.addAction(all)
+
             let genreButtonHandler: (UIAlertAction) -> Void
             genreButtonHandler = { action in
                 let index = actions.firstIndex { candidate in
@@ -169,18 +318,6 @@ class MediaViewBaseController:
         
         sortByView?.selectedSegmentIndex = UISegmentedControl.noSegment
         
-//        let oldTitle = sortByView?.titleForSegment(
-//            at: oldSel)
-//        
-//        sortByView?.removeSegment(
-//            at: oldSel,
-//            animated: false)
-//        
-//        sortByView?.insertSegment(
-//            withTitle: oldTitle,
-//            at: oldSel,
-//            animated: false)
-        
         sortByView?.setNeedsLayout()
     }
     
@@ -189,61 +326,163 @@ class MediaViewBaseController:
         
         // #e8c546
         // #4e328e
-        let color = UIColor(
-            red: CGFloat(0x4e) / 255.0,
-            green: CGFloat(0x32) / 255.0,
-            blue: CGFloat(0x8e) / 255.0,
-            alpha: CGFloat(1.0))
         
-        genreFilterButton?.tintColor = color
+        genreFilterButton?.tintColor = inactiveFilterColor
     }
     
     func clearQuery() {
         searchBarView?.text = nil
     }
+    
+    typealias MediaCertOrder = (media: Media, certOrder: Int?)
+    
+    func changeCertificationFilter(entry: CertificationListEntry) {
+        guard let order = entry.order
+            else { return }
+
+        certificationLimit = order
+        certificationMenuButton?.tintColor = order < 5
+            ? activeFilterColor
+            : inactiveFilterColor
+        
+        updateTitle()
+
+        refreshCertificationFilter()
+    }
+    
+    func refreshCertificationFilter() {
+        let removeIndicator = UIUtils.createIndicator(parent: self)
+        
+        var itemsWithCert: [MediaCertOrder] = []
+        
+        let pending = media.count
+        var completed = 0
+        
+        let completion = {
+            self.displayedMedia.removeAll()
+            
+            for item in itemsWithCert {
+                if self.shouldDisplay(
+                    order: item.certOrder ?? -1,
+                    genre_ids: item.media.getGenreIds()) {
+                    
+                    self.displayedMedia.append(item.media)
+                }
+            }
+            self.table.reloadData()
+            removeIndicator()
+        }
+        
+        displayedMedia.removeAll()
+        for (index, medium) in media.enumerated() {
+            itemsWithCert.append((
+                media: medium,
+                certOrder: nil
+            ))
+            getCachedCert(media: medium) { (letter, error) in
+                if let letter = letter {
+                    let certEntry = self.certificationLookup![letter]
+                    itemsWithCert[index].certOrder = certEntry?.order
+                }
+                completed += 1
+                if completed == pending {
+                    completion()
+                }
+            }
+        }
+    }
 
     func changeGenreFilter(pair: GenrePair) {
         // Clear the other two search filters
-        clearQuery()
-        clearSortBy()
+        //clearQuery()
+        //clearSortBy()
         
-        let color = UIColor(
-            red: CGFloat(0xe8) / CGFloat(255.0),
-            green: CGFloat(0xc5) / CGFloat(255.0),
-            blue: CGFloat(0x46) / CGFloat(255.0),
-            alpha: CGFloat(1.0))
-        
-        genreFilterButton?.tintColor = color
-        
-        titleView?.text = pair.name
+        genreFilterButton?.tintColor = activeFilterColor
+        //titleView?.text = pair.name
 
         currentGenreId = pair.id
+        updateTitle()
         reset()
-        loadMore(page: 1, query: nil, genreId: currentGenreId)
+        loadMore(page: 1, query: currentQuery(), genreId: currentGenreId)
     }
     
     func titleFromSortBy(pair: TMDBService.SortByPair) -> String {
         return pair.text
     }
     
-    func changeSortBy(to index: Int) {
-        guard let sortBys = sortBys
+    func updateTitle() {
+        var title: [String] = []
+        
+        guard let sortByInfo = sortBys?[currentSortBy]
             else { return }
         
+        if currentQuery() != nil {
+            title.append("Search")
+        } else {
+            let sortText = titleFromSortBy(
+                pair: sortByInfo)
+            
+            title.append(sortText)
+        }
+        
+        let mediaType = getMediaType()
+        
+        let genreCallback = { (list: TMDBService.GenreLookup?, error: Error?) in
+            guard let list = list
+                else { return }
+            
+            if let currentGenreId = self.currentGenreId {
+                let genreText = Media.formatGenreList(
+                    genreIds: [currentGenreId],
+                    lookup: list)
+            
+                title.append(genreText)
+            }
+            
+            TMDBService.getCertificationTable(
+                type: mediaType,
+                forCountry: TMDBService.COUNTRY) { (list, error) in
+                    guard let list = list
+                        else { return }
+                    
+                    for entry in list {
+                        if entry.order == self.certificationLimit {
+                            if self.certificationLimit != 5 {
+                                title.append(entry.certification ?? "???")
+                            }
+                            break
+                        }
+                    }
+                    
+                    let titleText = title.joined(separator: " • ")
+                    self.titleView?.text = titleText
+            }
+        }
+        
+        switch getMediaType() {
+        case "tv":
+            TMDBService.getShowGenres(callback: genreCallback)
+            break
+            
+        case "movie":
+            TMDBService.getMovieGenres(callback: genreCallback)
+            break
+            
+        default:
+            fatalError("Unhandled media type")
+            
+        }
+    }
+    
+    func changeSortBy(to index: Int) {
         // Clear the other search filters
         clearQuery()
-        clearGenreFilter()
-        
-        let sortByInfo = sortBys[index]
-        
-        titleView?.text = titleFromSortBy(pair: sortByInfo)
         
         if currentSortBy != index {
             currentSortBy = index
+            updateTitle()
             reset()
-            let query = (searchBarView?.text?.isEmpty ?? false)
-                ? nil
-                : searchBarView?.text
+            let query = currentQuery()
             loadMore(page: 1, query: query, genreId: currentGenreId)
         }
     }
@@ -251,15 +490,72 @@ class MediaViewBaseController:
     // MARK: - Data Results Processing
     func append(media: [Media], error: Error?) {
         self.media.append(contentsOf: media)
-        self.table.reloadData()
+        filterAppendedMedia(addedMedia: media)
         
-        tablePlaceholder?.toggle(show: media.isEmpty)
+        tablePlaceholder?.toggle(show: error != nil)
+    }
+    
+    func shouldDisplay(order: Int, genre_ids: [Int64]) -> Bool {
+        if let currentGenreId = currentGenreId {
+            if genre_ids.firstIndex(of: currentGenreId) == nil {
+                return false
+            }
+        }
+        
+        if self.certificationLimit < 5 {
+            return order > 0 && order <= self.certificationLimit
+        }
+        
+        return true
+    }
+    
+    func filterAppendedMedia(addedMedia media: [Media]) {
+        var results: [String?] = []
+        
+        let pending = media.count
+        var completed = 0
+        
+        let completion = {
+            for (index, letter) in results.enumerated() {
+                guard let lookup = self.certificationLookup,
+                    let letter = letter,
+                    let entry = lookup[letter],
+                    let order = entry.order
+                    else { continue }
+                
+                let ids = media[index].getGenreIds()
+                
+                if self.shouldDisplay(
+                    order: order,
+                    genre_ids: ids) {
+                    
+                    self.displayedMedia.append(media[index])
+                }
+            }
+            self.table.reloadData()
+        }
+        
+        for (index, medium) in media.enumerated() {
+            // Append vacant slot
+            results.append(nil)
+            
+            getCachedCert(
+                media: medium) { rating, error in
+                    // Populate slot
+                    results[index] = rating
+                    
+                    completed += 1
+                    if completed == pending {
+                        completion()
+                    }
+            }
+        }
     }
     
     // MARK: - Table View Methods
     func tableView(_ tableView: UITableView,
                    numberOfRowsInSection section: Int) -> Int {
-        return media.count
+        return displayedMedia.count
     }
     
     func tableView(_ tableView: UITableView,
@@ -269,7 +565,7 @@ class MediaViewBaseController:
                 withIdentifier: "media_cell") as? MediaTableViewCell
             else {return UITableViewCell()}
         
-        let target = media[indexPath.row]
+        let target = displayedMedia[indexPath.row]
         cell.setupMediaCell(media: target)
         
         return cell
@@ -304,7 +600,7 @@ class MediaViewBaseController:
         switch segue.identifier {
         case "detailView":
             if let destination = segue.destination as? MedialDetailViewController {
-                destination.media = media[selectedMedia]
+                destination.media = displayedMedia[selectedMedia]
                 selectedMedia = -1
             }
             break
@@ -322,40 +618,54 @@ class MediaViewBaseController:
         fatalError("Don't call super")
     }
     
+    func getMediaType() -> String {
+        fatalError("Don't call super")
+    }
+    
+    public func getCertificationList(
+        forCountry countryCode: String,
+        callback: @escaping ([CertificationListEntry]?, Error?) -> Void) {
+        
+        TMDBService.getCertificationTable(
+            type: getMediaType(),
+            forCountry: TMDBService.COUNTRY,
+            callback: callback)
+    }
+    
     func reset() {
         media.removeAll()
+        displayedMedia.removeAll()
         table.reloadData()
+        updateTitle()
         tablePlaceholder?.toggle(show: false)
         page = 1
     }
     
     func searchBar(_ searchBar: UISearchBar,
                    textDidChange searchText: String) {
-        if (searchText == "") {
-            updateSearch()
+        if searchText.isEmpty {
+            changeSearchText()
         }
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        updateSearch()
+        changeSearchText()
     }
     
-    func updateSearch() {
+    func changeSearchText() {
         let query = currentQuery()
         
-        if query != nil && !query!.isEmpty {
+        if query != nil {
             clearSortBy()
-            clearGenreFilter()
-            titleView?.text = "Search"
         }
         
         reset()
         
-        loadMore(page: 1, query: currentQuery(), genreId: currentGenreId)
+        loadMore(page: 1, query: query, genreId: currentGenreId)
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         searchBar.text = ""
-        updateSearch()
+        changeSearchText()
     }
 }
