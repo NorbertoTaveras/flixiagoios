@@ -35,6 +35,7 @@ public class CastMember: TMDBRecord, ImageProvider {
     var profile_path: String?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -74,6 +75,7 @@ public class Person: TMDBRecord, ImageProvider {
     var profile_path: String?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -135,6 +137,7 @@ public class PersonImages: TMDBRecord {
     var profiles: [PersonImage]?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -147,6 +150,7 @@ public class PersonImage: TMDBRecord, ImageProvider {
     var file_path: String?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -174,6 +178,7 @@ public class PersonCombinedCreditsResponse: TMDBRecord {
     var roles: [PersonCombinedCreditsRole]?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -193,6 +198,7 @@ public class PersonCombinedCreditsRole: TMDBRecord, ImageProvider {
     var character: String?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
