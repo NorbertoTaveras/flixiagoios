@@ -50,7 +50,10 @@ public class TMDBService {
     public typealias GenreLookup = GenreList.GenreLookup
     
     // Aggressively cache genre list
+    public typealias GenreCallback = (GenreLookup?, Error?) -> Void
+    private static var cachedGenresMovieCallbacks: [GenreCallback]? = []
     private static var cachedGenresMovie: GenreLookup?
+    private static var cachedGenresShowCallbacks: [GenreCallback]? = []
     private static var cachedGenresShow: GenreLookup?
     
     public static func request<T: TMDBRecord>(
@@ -270,13 +273,32 @@ public class TMDBService {
         callback: @escaping (GenreLookup?, Error?) -> Void) {
         
         if cachedGenresMovie != nil {
+            // use cached lookup table
             callback(cachedGenresMovie, nil)
             return
         }
         
+        if cachedGenresMovieCallbacks == nil {
+            callback(nil, nil)
+            return
+        }
+        
+        // The callback array exists, so add
+        // to callback list to be called when it completes
+        cachedGenresMovieCallbacks!.append(callback)
+        
+        // return if this is not the first request
+        if cachedGenresMovieCallbacks!.count > 1 {
+            return
+        }
+
+        // only actually start the request for the first one
         getGenres(type: "movie") { (list, error) in
             if error != nil {
-                callback(nil, error)
+                for pendingCallback in cachedGenresMovieCallbacks! {
+                    pendingCallback(nil, error)
+                }
+                cachedGenresMovieCallbacks = nil
                 return
             }
             
@@ -284,16 +306,37 @@ public class TMDBService {
                 cachedGenresMovie = list.makeLookupTable()
             }
             
-            callback(cachedGenresMovie, nil)
+            for pendingCallback in cachedGenresMovieCallbacks! {
+                pendingCallback(cachedGenresMovie, error)
+            }
         }
     }
     
     public static func getShowGenres(
-        callback: @escaping (GenreLookup?, Error?) -> Void) {
+        callback: @escaping GenreCallback) {
+        
+        if cachedGenresShow != nil {
+            callback(cachedGenresShow, nil)
+            return
+        }
+        
+        if cachedGenresShowCallbacks == nil {
+            callback(nil, nil)
+            return
+        }
+        
+        cachedGenresShowCallbacks!.append(callback)
+        
+        if cachedGenresShowCallbacks!.count > 1 {
+            return
+        }
         
         getGenres(type: "tv") { (list, error) in
             if error != nil {
-                callback(nil, error)
+                for pendingCallback in cachedGenresShowCallbacks! {
+                    pendingCallback(nil, error)
+                }
+                cachedGenresShowCallbacks = nil
                 return
             }
             
@@ -301,7 +344,11 @@ public class TMDBService {
                 cachedGenresShow = list.makeLookupTable()
             }
             
-            callback(cachedGenresShow, nil)
+            for pendingCallback in cachedGenresShowCallbacks! {
+                pendingCallback(cachedGenresShow, nil)
+            }
+            
+            cachedGenresShowCallbacks = nil
         }
     }
     
@@ -424,6 +471,20 @@ public class TMDBService {
             callback: callback)
     }
     
+    public static func getShowSeason(
+        id: Int64,
+        seasonNumber: Int,
+        callback: @escaping (ShowSeasonResponse?, Error?) -> Void) {
+        
+        let urlText = getUrl(
+            path: "3/tv/\(id)/season/\(seasonNumber)",
+            query: [
+                "language": LANGUAGE
+        ])
+        
+        request(urlText: urlText, callback: callback)
+    }
+    
     public static func getPerson(
         id: Int64,
         callback: @escaping (Person?, Error?) -> Void) {
@@ -461,6 +522,24 @@ public class TMDBService {
         
         request(urlText: urlText) { (response: PersonCombinedCreditsResponse?, error) in
             callback(error != nil ? nil : (response?.roles ?? []), error)
+        }
+    }
+    
+    public static func getCertificationTable(
+        type: String,
+        forCountry countryCode: String,
+        callback: @escaping ([CertificationListEntry]?, Error?) -> Void) {
+        
+        let urlText = getUrl(
+            path: "3/certification/\(type)/list",
+            query: [:])
+        
+        request(urlText: urlText) { (response: CertificationListResponse?, error) in
+            var table = response?.certifications?[countryCode] ?? []
+            table.sort { (lhs, rhs) -> Bool in
+                return (lhs.order ?? 0) < (rhs.order ?? 0)
+            }
+            callback(table, error)
         }
     }
     
