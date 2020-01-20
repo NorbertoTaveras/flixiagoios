@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 import AVKit
+import UICircularProgressRing
 
 class UIUtils {
     static let dateFormat = "MMMM d, y"
@@ -373,4 +374,79 @@ class UIUtils {
         }
     }
     
+    // #4e328e
+    static let purple = UIColor(
+        red: CGFloat(0x4e) / 255.0,
+        green: CGFloat(0x32) / 255.0,
+        blue: CGFloat(0x8e) / 255.0,
+        alpha: CGFloat(1.0))
+    
+    // #40C758
+    static let green = UIColor(
+        red: CGFloat(0x40) / 255.0,
+        green: CGFloat(0xC7) / 255.0,
+        blue: CGFloat(0x58) / 255.0,
+        alpha: CGFloat(1.0))
+    
+    //#F32E55
+    static let red = UIColor(
+        red: CGFloat(0xF3) / 255.0,
+        green: CGFloat(0x2E) / 255.0,
+        blue: CGFloat(0x55) / 255.0,
+        alpha: 1.0)
+    
+    // #e8c546
+    static let yellow = UIColor(
+        red: CGFloat(0xE8) / 255.0,
+        green: CGFloat(0xC5) / 255.0,
+        blue: CGFloat(0x46) / 255.0,
+        alpha: 1.0)
+    
+    public static func setupRatingRing(
+        ringView: UICircularProgressRing,
+        vote_average: Float?) {
+        
+        setupRatingRing(
+            ringView: ringView,
+            vote_average: vote_average,
+            small: false)
+    }
+
+    public static func setupRatingRing(
+        ringView: UICircularProgressRing,
+        vote_average: Float?,
+        small: Bool) {
+
+        let score = 100.0 * CGFloat((vote_average ?? 0) / Float(10.0))
+        
+        let color: UIColor
+        if score < 40 {
+            color = red
+        } else if score < 60 {
+            color = UIColor.orange
+        } else if score < 75 {
+            color = yellow
+        } else {
+            color = green
+        }
+
+        if small {
+            if ringView.font.pointSize != 8.0 {
+                ringView.font = UIFont(
+                    descriptor: ringView.font.fontDescriptor,
+                    size: 8.0)
+            }
+        }
+
+        ringView.maxValue = 100.0
+        ringView.outerRingColor = purple
+        ringView.innerRingColor = color
+        ringView.outerRingWidth = 2.0
+
+        ringView.startProgress(to: 0, duration: 0.001) {
+            ringView.startProgress(
+                to: score,
+                duration: 1.0)
+        }
+    }
 }
