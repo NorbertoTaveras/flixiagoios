@@ -15,37 +15,25 @@ class FavoriteCollectionCell: UICollectionViewCell {
     var info: FavoriteRecord.KindTypeId?
     var media: Media?
     
+    var favoriteToggler: Media.FavoriteToggler?
+    
     override func awakeFromNib() {
-        let recognizer = UITapGestureRecognizer(
-            target: self,
-            action: #selector(favoriteClick))
-        
-        favoriteView.addGestureRecognizer(recognizer)
-        
         self.posterView.layer.cornerRadius = 8.0
     }
     
     func setupCell(info: FavoriteRecord.KindTypeId) {
         self.info = info
-        
+
         TMDBService.getMediaDetail(
             id: info.id,
             type: info.type) { (media, error) in
                 self.media = media
-                media?.setPosterImage(into: self.posterView)
-                media?.setupButton(
+                
+                self.favoriteToggler = media?.autoButton(
                     kind: info.kind,
                     into: self.favoriteView)
+                
+                media?.setPosterImage(into: self.posterView)
         }
-    }
-    
-    @objc func favoriteClick() {
-        guard let info = info
-            else { return }
-        
-        media?.toggle(
-            kind: info.kind,
-            type: info.type,
-            into: favoriteView)
     }
 }
