@@ -15,7 +15,10 @@ class FirestoreService {
     private static let db = Firestore.firestore()
     private static let auth = Auth.auth()
     
-    private static func collectionFrom(kind: String, type: String) -> String {
+    private static func collectionFrom(
+        kind: String,
+        type: String) -> String {
+        
         let noun: String
         
         switch kind {
@@ -25,6 +28,10 @@ class FirestoreService {
             
         case "f":
             noun = "favorite"
+            break
+            
+        case "e":
+            noun = "episode"
             break
             
         default:
@@ -41,6 +48,13 @@ class FirestoreService {
         }
     }
     
+    private static func documentKeyFrom(id: Int64) -> String? {
+        guard let uid = auth.currentUser?.uid
+            else { return nil }
+        
+        return "\(id)_\(uid)"
+    }
+    
     public static func get(
         kind: String,
         type: String,
@@ -53,7 +67,8 @@ class FirestoreService {
         
         let collection = db.collection(collectionName)
         
-        let idText = String(id)
+        guard let idText = documentKeyFrom(id: id)
+            else { return }
         
         collection.document(idText).getDocument { (doc, error) in
             guard let data = doc?.data()
@@ -69,7 +84,8 @@ class FirestoreService {
     public static func set(
         kind: String,
         type: String,
-        media: Media,
+        media: Media?,
+        id: Int64?,
         timestamp: Int64,
         watched: Bool,
         callback: @escaping (Error?) -> Void) {
@@ -77,32 +93,42 @@ class FirestoreService {
         let collectionName = collectionFrom(
             kind: kind,
             type: type)
+
+        let overview = media?.overview ?? ""
+        let poster_path = media?.poster_path ?? ""
+        
+        let collection = db.collection(collectionName)
+
+        guard let idText = media != nil
+            ? documentKeyFrom(id: media!.id)
+            : documentKeyFrom(id: id!)
+            else { return }
         
         guard let uid = auth.currentUser?.uid
             else { return }
         
-        let overview = media.overview ?? ""
-        let poster_path = media.poster_path ?? ""
-        
-        let idText = String(media.id)
-        
-        let collection = db.collection(collectionName)
-
-        collection.document(idText).setData([
-            "id": media.id,
-            "overview": overview,
-            "poster_path": poster_path,
-            "release_date": media.formatReleaseDate(),
-            "title": media.getTitle(),
-            "uid": uid,
-            "vote_average": media.vote_average ?? 0.0,
+        var doc: [String: Any] = [
             "watched": watched,
-            "unix_ms": timestamp
-        ]) { error in
+            "unix_ms": timestamp,
+            "uid": uid
+        ]
+        
+        if let media = media {
+            doc["id"] = media.id
+            doc["overview"] = overview
+            doc["poster_path"] = poster_path
+            doc["release_date"] = media.formatReleaseDate()
+            doc["title"] = media.getTitle()
+            doc["vote_average"] = media.vote_average ?? 0.0
+        } else {
+            doc["id"] = id
+        }
+        
+        collection.document(idText).setData(doc) { error in
             callback(error)
         }
     }
-    
+
     public static func setWatched(
         kind: String,
         type: String,
@@ -115,13 +141,11 @@ class FirestoreService {
             kind: kind,
             type: type)
         
-        let idText = String(id)
-        
-//        guard let userId = auth.currentUser?.uid
-//            else { return }
-        
         let collection = db.collection(collectionName)
         
+        guard let idText = documentKeyFrom(id: id)
+            else { return }
+
         var data: [String: Any] = [
             "watched": isFavorite
         ]
@@ -143,6 +167,7 @@ class FirestoreService {
         set(kind: "w",
             type: "movie",
             media: movie,
+            id: nil,
             timestamp: timestamp,
             watched: watched,
             callback: callback)
@@ -157,6 +182,7 @@ class FirestoreService {
         set(kind: "w",
             type: "tv",
             media: show,
+            id: nil,
             timestamp: timestamp,
             watched: watched,
             callback: callback)
@@ -171,6 +197,7 @@ class FirestoreService {
         set(kind: "f",
             type: "movie",
             media: movie,
+            id: nil,
             timestamp: timestamp,
             watched: watched,
             callback: callback)
@@ -185,6 +212,7 @@ class FirestoreService {
         set(kind: "f",
             type: "tv",
             media: show,
+            id: nil,
             timestamp: timestamp,
             watched: watched,
             callback: callback)
@@ -198,7 +226,7 @@ class FirestoreService {
         
         var todo: [SyncToDo] = []
         
-        for kind in ["w", "f"] {
+        for kind in ["e", "w", "f"] {
             for type in ["tv", "movie"] {
                 todo.append((
                     kind: kind,
@@ -383,6 +411,7 @@ class FirestoreService {
                                     kind: kind,
                                     type: type,
                                     media: media,
+                                    id: nil,
                                     timestamp: record.timestamp,
                                     watched: record.favorite) { (error) in
                                         handleCompletion()
