@@ -16,6 +16,7 @@ public class TrailersResponse: TMDBRecord {
     var results: [Trailer]?
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
@@ -36,6 +37,7 @@ public class Trailer: TMDBRecord, ImageProvider, VideoProvider {
         "http://www.youtube.com/watch?v=%@"
     
     public required init?(map: Map) {
+        mapping(map: map)
     }
     
     public func mapping(map: Map) {
