@@ -82,6 +82,61 @@ public class FavoriteRecord: Object {
         }
     }
     
+    @discardableResult
+    public static func toggle(
+        kind: String,
+        type: String,
+        id: Int64,
+        into view: UIView) -> FavoriteRecord? {
+        
+        let record = FavoriteRecord.get(
+            kind: kind,
+            type: type,
+            id: id)
+        
+        let wasFavorite = record?.favorite ?? false
+        
+        let updatedRecord = FavoriteRecord.set(
+            kind: kind,
+            type: type,
+            id: id,
+            isFavorite: !wasFavorite)
+        
+        if let button = view as? UIButton {
+            setupButton(
+                kind: kind,
+                type: type,
+                record: updatedRecord,
+                into: button)
+        } else if let imageView = view as? UIImageView {
+            setupButton(
+                kind: kind,
+                type: type,
+                record: updatedRecord,
+                into: imageView)
+        } else {
+            fatalError("Unhandled view type")
+        }
+        
+        
+        if let record = updatedRecord {
+            FirestoreService.set(
+                kind: kind,
+                type: type,
+                media: nil,
+                id: id,
+                timestamp: record.timestamp,
+                watched: !wasFavorite) { (error) in
+                    if error != nil {
+                        print(error as Any)
+                    }
+            }
+        }
+
+        
+        return updatedRecord
+    }
+    
     public static func getFavorite(
         type: String,
         id: Int64) -> FavoriteRecord? {
@@ -161,18 +216,20 @@ public class FavoriteRecord: Object {
                     realm.delete(existingRecord)
                 }
                 
-                let record = FavoriteRecord(
+                record = FavoriteRecord(
                     kind: kind,
                     type: type,
                     id: id,
                     isFavorite: isFavorite)
                 
-                if timestamp != nil {
-                    record.timestamp =
-                        Int64(Date().timeIntervalSince1970 * 1000)
+                if let record = record {
+                    if timestamp != nil {
+                        record.timestamp =
+                            Int64(Date().timeIntervalSince1970 * 1000)
+                    }
+                    
+                    realm.add(record)
                 }
-                
-                realm.add(record)
             }
         } catch {
             print(error.localizedDescription)
@@ -243,7 +300,7 @@ public class FavoriteRecord: Object {
     public static func setupFavoriteButton(
         type: String,
         id: Int64,
-        into view: UIButton) -> FavoriteRecord? {
+        into view: UIView) -> FavoriteRecord? {
         
         return setupButton(
             kind: "f",
@@ -255,7 +312,7 @@ public class FavoriteRecord: Object {
     public static func setupWatchButton(
         type: String,
         id: Int64,
-        into view: UIButton) -> FavoriteRecord? {
+        into view: UIView) -> FavoriteRecord? {
         
         return setupButton(
             kind: "w",
@@ -264,11 +321,12 @@ public class FavoriteRecord: Object {
             into: view)
     }
     
+    @discardableResult
     public static func setupButton(
         kind: String,
         type: String,
         id: Int64,
-        into view: UIButton) -> FavoriteRecord? {
+        into view: UIView) -> FavoriteRecord? {
         let record = FavoriteRecord.get(
             kind: kind,
             type: type,
@@ -287,25 +345,36 @@ public class FavoriteRecord: Object {
         kind: String,
         type: String,
         record: FavoriteRecord?,
-        into view: UIButton) {
-        let purple = UIColor(
-            red: CGFloat(0x4e) / 255.0,
-            green: CGFloat(0x32) / 255.0,
-            blue: CGFloat(0x8e) / 255.0,
-            alpha: CGFloat(1.0))
+        into view: UIView) {
+        
+        let color: UIColor
+        
+        if kind != "e" {
+            color = UIUtils.purple
+        } else {
+            color = UIUtils.yellow
+        }
         
         view.layer.cornerRadius = 8.0;
         
+        let button: UIButton? = view as? UIButton
+        let image: UIImageView? = view as? UIImageView
+
+        button?.layer.borderWidth = 1.0
+        button?.layer.borderColor = color.cgColor
+        
+        let icons = iconsFrom(kind: kind)
+
         if record?.favorite ?? false {
-            view.backgroundColor = purple
-            view.setTitleColor(UIColor.white, for: .normal)
-            view.tintColor = UIColor.white
+            image?.image = UIImage(systemName: icons[1])
+            button?.tintColor = UIColor.white
+            button?.backgroundColor = color
+            button?.setTitleColor(UIColor.white, for: .normal)
         } else {
-            view.backgroundColor = UIColor.clear
-            view.setTitleColor(purple, for: .normal)
-            view.tintColor = purple
-            view.layer.borderWidth = 1.0
-            view.layer.borderColor = purple.cgColor
+            image?.image = UIImage(systemName: icons[0])
+            button?.tintColor = color
+            button?.backgroundColor = UIColor.clear
+            button?.setTitleColor(color, for: .normal)
         }
     }
     
@@ -323,8 +392,14 @@ public class FavoriteRecord: Object {
                 "eye.fill"
             ]
             
+        case "e":
+            return [
+                "eye",
+                "eye.fill"
+            ]
+            
         default:
-            return []
+            fatalError("Unhandled kind")
         }
     }
     
@@ -352,6 +427,7 @@ public class FavoriteRecord: Object {
             into: view)
     }
 
+    @discardableResult
     public static func setupButton(
         kind: String,
         type: String,
