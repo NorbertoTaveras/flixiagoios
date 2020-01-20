@@ -12,6 +12,7 @@ import UICircularProgressRing
 public class MedialDetailViewController: UIViewController {
     
 
+    @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var titleView: UILabel!
     @IBOutlet weak var dateRuntimeView: UILabel!
     @IBOutlet weak var genresView: UILabel!
@@ -41,34 +42,6 @@ public class MedialDetailViewController: UIViewController {
     var reviewsContainer: [Review] = []
     
     var selectedSimilar: Media?
-    
-    // #4e328e
-    let purple = UIColor(
-        red: CGFloat(0x4e) / 255.0,
-        green: CGFloat(0x32) / 255.0,
-        blue: CGFloat(0x8e) / 255.0,
-        alpha: CGFloat(1.0))
-    
-    // #40C758
-    let green = UIColor(
-        red: CGFloat(0x40) / 255.0,
-        green: CGFloat(0xC7) / 255.0,
-        blue: CGFloat(0x58) / 255.0,
-        alpha: CGFloat(1.0))
-    
-    //#F32E55
-    let red = UIColor(
-        red: CGFloat(0xF3) / 255.0,
-        green: CGFloat(0x2E) / 255.0,
-        blue: CGFloat(0x55) / 255.0,
-        alpha: 1.0)
-    
-    // #e8c546
-    let yellow = UIColor(
-        red: CGFloat(0xE8) / 255.0,
-        green: CGFloat(0xC5) / 255.0,
-        blue: CGFloat(0x46) / 255.0,
-        alpha: 1.0)
     
     private var color: UIColor?
     private var selectedCastMember: CastMember?
@@ -101,30 +74,10 @@ public class MedialDetailViewController: UIViewController {
         
         titleView.text = media?.getTitle()
         ratingCountView.text = "\(media?.vote_count ?? 0) Ratings"
-        
-        let score = 100.0 * CGFloat((media?.vote_average ?? 0) / Float(10.0))
-        
-        if score < 40 {
-            color = red
-        } else if score < 60 {
-            color = UIColor.orange
-        } else if score < 75 {
-            color = yellow
-        } else {
-            color = green
-        }
-        
-        ratingRingView.maxValue = 100.0
-        ratingRingView.outerRingColor = purple
-        ratingRingView.innerRingColor = color!
-        ratingRingView.outerRingWidth = 2.0
-        ratingRingView.value = 100.0 * CGFloat((media?.vote_average ?? 0) / Float(10.0))
-        
-        ratingRingView.startProgress(to: 0, duration: 0.001) {
-            self.ratingRingView.startProgress(
-                to: 100.0 * CGFloat((self.media?.vote_average ?? 0) / Float(10.0)),
-                duration: 1.0)
-        }
+
+        UIUtils.setupRatingRing(
+            ringView: ratingRingView,
+            vote_average: media?.vote_average)
         
         overviewView.text = media?.overview ?? "Overview Unavailable"
 
