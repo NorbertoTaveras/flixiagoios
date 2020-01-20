@@ -100,16 +100,7 @@ public class ImageScrollerCollectionViewCell: UICollectionViewCell {
     
     public override func awakeFromNib() {
         super.awakeFromNib()
-        
-        if let ratingView = ratingView {
-            if ratingView.font.pointSize != 8.0 {
-                ratingView.font = UIFont(
-                    descriptor: ratingView.font.fontDescriptor,
-                    size: 8.0)
-            }
-            ratingView.startProgress(to: 0.0, duration: 0.01)
-        }
-        
+                
         let tapRecognizer = UITapGestureRecognizer(
             target: self,
             action: #selector(photoTapped))
@@ -138,28 +129,10 @@ public class ImageScrollerCollectionViewCell: UICollectionViewCell {
         if let ratingView = ratingView,
             let rating = item.getImageRating() {
             
-            let score = 100.0 * CGFloat((rating) / Float(10.0))
-            
-            if score < 40 {
-                color = red
-            } else if score < 60 {
-                color = UIColor.orange
-            } else if score < 75 {
-                color = yellow
-            } else {
-                color = green
-            }
-            ratingView.maxValue = 100.0
-            ratingView.outerRingColor = purple
-            ratingView.innerRingColor = color!
-            ratingView.outerRingWidth = 1.0
-            ratingView.startProgress(
-                to: CGFloat(0),
-                duration: 0.01) {
-                ratingView.startProgress(
-                    to: CGFloat(rating * 10),
-                    duration: 1)
-            }
+            UIUtils.setupRatingRing(
+                ringView: ratingView,
+                vote_average: rating,
+                small: true)
         }
     }
 }
