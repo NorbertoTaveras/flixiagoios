@@ -66,34 +66,8 @@ class RoleTableViewCell: UITableViewCell {
         titleView.text = role.name
         characterView.text = role.character ?? "<unknown>"
         
-        let score = 100.0 * CGFloat((role.vote_average ?? 0) / Float(10.0))
-        
-        if score < 40 {
-            color = red
-        } else if score < 60 {
-            color = UIColor.orange
-        } else if score < 75 {
-            color = yellow
-        } else {
-            color = green
-        }
-        
-        ratingView.maxValue = 100.0
-        ratingView.outerRingColor = purple
-        ratingView.innerRingColor = color!
-        ratingView.outerRingWidth = 2.0
-        ratingView.font = UIFont.systemFont(ofSize: 12.0)
-        ratingView.startProgress(
-            to: CGFloat(0),
-            duration: 0.001) {
-                self.ratingView.startProgress(
-                to: score,
-                duration: 1)
-        }
-        
-        /*ratingView.startProgress(
-            to: CGFloat(role.vote_average ?? 0 * 10),
-            duration: 1) */
+        UIUtils.setupRatingRing(
+            ringView: ratingView, vote_average: role.vote_average)
 
         if let date = Media.parseDate(fromText: role.release_date) {
             dateView.text = UIUtils.formatDate(from: date)
