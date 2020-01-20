@@ -10,6 +10,10 @@
 		0E4BE08F23C3FABC005ABEB2 /* ReviewsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4BE08E23C3FABC005ABEB2 /* ReviewsViewController.swift */; };
 		0E4BE09123C3FB15005ABEB2 /* ReviewTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4BE09023C3FB15005ABEB2 /* ReviewTableViewCell.swift */; };
 		0E4BE09323C421A7005ABEB2 /* CastViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4BE09223C421A7005ABEB2 /* CastViewController.swift */; };
+		0E4DBEE823CFF49C006313EF /* SeasonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4DBEE723CFF49C006313EF /* SeasonsViewController.swift */; };
+		0E4DBEEA23CFF4CA006313EF /* SeasonEpisodesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4DBEE923CFF4CA006313EF /* SeasonEpisodesViewController.swift */; };
+		0E4DBEEC23D003B9006313EF /* EpisodeTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4DBEEB23D003B9006313EF /* EpisodeTableViewCell.swift */; };
+		0E4DBEEE23D003DE006313EF /* SeasonTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E4DBEED23D003DE006313EF /* SeasonTableViewCell.swift */; };
 		0E70859123A7E8160041D5E2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E70859023A7E8160041D5E2 /* AppDelegate.swift */; };
 		0E70859323A7E8160041D5E2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E70859223A7E8160041D5E2 /* SceneDelegate.swift */; };
 		0E70859523A7E8160041D5E2 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E70859423A7E8160041D5E2 /* MainViewController.swift */; };
@@ -55,6 +59,10 @@
 		0E4BE08E23C3FABC005ABEB2 /* ReviewsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewsViewController.swift; sourceTree = "<group>"; };
 		0E4BE09023C3FB15005ABEB2 /* ReviewTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewTableViewCell.swift; sourceTree = "<group>"; };
 		0E4BE09223C421A7005ABEB2 /* CastViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CastViewController.swift; sourceTree = "<group>"; };
+		0E4DBEE723CFF49C006313EF /* SeasonsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonsViewController.swift; sourceTree = "<group>"; };
+		0E4DBEE923CFF4CA006313EF /* SeasonEpisodesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonEpisodesViewController.swift; sourceTree = "<group>"; };
+		0E4DBEEB23D003B9006313EF /* EpisodeTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeTableViewCell.swift; sourceTree = "<group>"; };
+		0E4DBEED23D003DE006313EF /* SeasonTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeasonTableViewCell.swift; sourceTree = "<group>"; };
 		0E70858D23A7E8160041D5E2 /* Flixiago.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flixiago.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0E70859023A7E8160041D5E2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0E70859223A7E8160041D5E2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -187,6 +195,8 @@
 				0E4BE08E23C3FABC005ABEB2 /* ReviewsViewController.swift */,
 				0E4BE09223C421A7005ABEB2 /* CastViewController.swift */,
 				0E84104123C5853800BE6747 /* WatchlistViewController.swift */,
+				0E4DBEE723CFF49C006313EF /* SeasonsViewController.swift */,
+				0E4DBEE923CFF4CA006313EF /* SeasonEpisodesViewController.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -226,6 +236,8 @@
 		0E7085D023A7FBF90041D5E2 /* Cells */ = {
 			isa = PBXGroup;
 			children = (
+				0E4DBEEB23D003B9006313EF /* EpisodeTableViewCell.swift */,
+				0E4DBEED23D003DE006313EF /* SeasonTableViewCell.swift */,
 				0E7085D123A7FFD60041D5E2 /* MediaTableViewCell.swift */,
 				0E7085D923A804F70041D5E2 /* ImageScrollerCollectionViewCell.swift */,
 				0EF2632523AB176B00C12B83 /* FavoriteCollectionCell.swift */,
@@ -371,12 +383,15 @@
 				0E7085C523A7F9090041D5E2 /* UIUtils.swift in Sources */,
 				0E7085B923A7F8110041D5E2 /* Genre.swift in Sources */,
 				0E7085B723A7F7F50041D5E2 /* VideoProvider.swift in Sources */,
+				0E4DBEE823CFF49C006313EF /* SeasonsViewController.swift in Sources */,
 				0E7085C123A7F88E0041D5E2 /* Trailer.swift in Sources */,
 				0E7085E023A9A3D70041D5E2 /* NetUtils.swift in Sources */,
+				0E4DBEEE23D003DE006313EF /* SeasonTableViewCell.swift in Sources */,
 				0E7085BB23A7F8340041D5E2 /* Certification.swift in Sources */,
 				0E84104623C6A94800BE6747 /* SyncInfoRecord.swift in Sources */,
 				0E7085B123A7F76B0041D5E2 /* TMDBService.swift in Sources */,
 				0E7085DA23A804F70041D5E2 /* ImageScrollerCollectionViewCell.swift in Sources */,
+				0E4DBEEA23CFF4CA006313EF /* SeasonEpisodesViewController.swift in Sources */,
 				0E7085CB23A7FA900041D5E2 /* SignUpViewController.swift in Sources */,
 				0E4BE09123C3FB15005ABEB2 /* ReviewTableViewCell.swift in Sources */,
 				0E4BE08F23C3FABC005ABEB2 /* ReviewsViewController.swift in Sources */,
@@ -385,6 +400,7 @@
 				0E84104023C43C3A00BE6747 /* RoleTableViewCell.swift in Sources */,
 				0E7085DE23A89F5E0041D5E2 /* FavoriteRecord.swift in Sources */,
 				0E7085C923A7FA460041D5E2 /* SignInViewController.swift in Sources */,
+				0E4DBEEC23D003B9006313EF /* EpisodeTableViewCell.swift in Sources */,
 				0E7085BF23A7F8720041D5E2 /* Cast.swift in Sources */,
 				0E7085E223A9BDC80041D5E2 /* MediaTabbarController.swift in Sources */,
 				0E4BE09323C421A7005ABEB2 /* CastViewController.swift in Sources */,
