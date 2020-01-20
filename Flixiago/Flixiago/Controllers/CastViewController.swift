@@ -29,6 +29,8 @@ class CastViewController:
     
     var photoImageManager: ImageScrollerManager?
     
+    var selectedMedia: Media?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -92,15 +94,53 @@ class CastViewController:
             items: profiles,
             tapCallback: nil)
     }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let role = roles?[indexPath.row],
+            let mediaType = role.media_type
+            else { return }
+        
+        TMDBService.getMediaDetail(
+            id: role.id,
+            type: mediaType) { (media, error) in
+                self.selectedMedia = media
+            
+                self.performSegue(
+                    withIdentifier: "mediaView",
+                    sender: self)
+        }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        switch segue.identifier {
+        case "mediaView":
+            guard let destination = segue.destination
+                as? MedialDetailViewController
+                else { return }
+            
+            destination.media = selectedMedia
+            
+            break
+            
+        default:
+            fatalError("Unhandled segue")
+            break
+            
+        }
+    }
     
     private func processRoles(_ responseRoles: [PersonCombinedCreditsRole]?) {
         roles = responseRoles
         rolesTable.reloadData()
         
-        UIUtils.sizeView(view: rolesTable,
-                         constraintId: "rolesHeight",
-                         size: CGSize(width: 0,
-                                      height: Int(Float(roles?.count ?? 0) * 150.5)))
+        let size = CGSize(
+            width: 0,
+            height: Int(Float(roles?.count ?? 0) * 150.5))
+        
+        UIUtils.sizeView(
+            view: rolesTable,
+            constraintId: "rolesHeight",
+            size: size)
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
