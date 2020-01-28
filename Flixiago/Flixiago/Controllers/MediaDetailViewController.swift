@@ -23,6 +23,7 @@ public class MedialDetailViewController: UIViewController {
     @IBOutlet weak var overviewView: UITextView!
     @IBOutlet weak var ratingRingView: UICircularProgressRing!
     @IBOutlet weak var ratingCountView: UILabel!
+    @IBOutlet weak var showingsView: UIImageView!
     
     @IBOutlet weak var castCollectionView: UICollectionView!
     @IBOutlet weak var trailerCollectionView: UICollectionView!
@@ -31,6 +32,7 @@ public class MedialDetailViewController: UIViewController {
     @IBOutlet weak var favoriteView: UIButton!
     @IBOutlet weak var watchView: UIButton!
     @IBOutlet weak var similarHeadingView: UILabel!
+    @IBOutlet weak var nearbyContainer: UIView!
     
     var media: Media?
     var castMembers: [CastMember]?
@@ -61,6 +63,15 @@ public class MedialDetailViewController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let mediaType = media?.getMediaType()
+        
+        nearbyContainer.isHidden = mediaType == "tv"
+        
+        let tapNearbyGesture = UITapGestureRecognizer(
+            target: self, action: #selector(nearbyTapped))
+        nearbyContainer.isUserInteractionEnabled = true;
+        nearbyContainer.addGestureRecognizer(tapNearbyGesture)
         
         pending = 0
         completed = 0
@@ -188,6 +199,19 @@ public class MedialDetailViewController: UIViewController {
         media?.setupFavoriteButton(into: favoriteView)
         
         media?.setupWatchButton(into: watchView)
+        
+        let isLoggedIn = AuthUtils.isLoggedIn()
+        favoriteView.isUserInteractionEnabled = isLoggedIn
+        watchView.isUserInteractionEnabled = isLoggedIn
+        favoriteView.isEnabled = isLoggedIn
+        watchView.isEnabled = isLoggedIn
+    }
+    
+    @objc private func nearbyTapped() {
+        guard let title = media?.getTitle()
+            else { return }
+        
+        UIUtils.openGoogleSearch(query: title + " showtimes")
     }
     
     public override func viewDidAppear(_ animated: Bool) {
