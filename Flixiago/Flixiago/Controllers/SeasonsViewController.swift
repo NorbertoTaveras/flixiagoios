@@ -35,6 +35,7 @@ UITableViewDataSource {
     
     var watchToggler: Media.FavoriteToggler?
     var favoriteToggler: Media.FavoriteToggler?
+    var selectedSeason: ShowSeason?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -55,6 +56,7 @@ UITableViewDataSource {
         showSummaryView.text = "\(show?.number_of_seasons ?? 0) seasons" +
             " • \(show?.number_of_episodes ?? 0) episodes "
         ratingCountView.text = "\(show?.vote_count ?? 0) Ratings"
+        titleView.text = show?.getTitle()
         
         if watchToggler == nil && favoriteToggler == nil {
             watchToggler = show?.autoButton(kind: "w", into: watchView)
@@ -101,6 +103,7 @@ UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if let episodes = episodes {
             // Episode list
+        
             guard let cell = tableView.dequeueReusableCell(
                 withIdentifier: "episodeCell")
                 as? EpisodeTableViewCell
@@ -108,6 +111,8 @@ UITableViewDataSource {
             
             cell.setupCell(
                 target: episodes[indexPath.row])
+            
+                    seasonTitleView.text = "Season \(selectedSeason?.season_number ?? 0)"
             return cell
         } else {
             // Season list
@@ -138,11 +143,11 @@ UITableViewDataSource {
                 let seasons = show.seasons
                 else { return }
             
-            let selectedSeason = seasons[indexPath.row]
+            selectedSeason = seasons[indexPath.row]
             
-            guard let season_number = selectedSeason.season_number
+            guard let season_number = selectedSeason?.season_number
                 else { return }
-
+            
             TMDBService.getShowSeason(
                 id: show.id,
                 seasonNumber: season_number) { (showSeason, error) in
@@ -150,12 +155,9 @@ UITableViewDataSource {
                         else { return }
                     
                     self.selectedEpisodes = showSeason.episodes
-                    
                     self.performSegue(withIdentifier: "episodeView",
                                  sender: self)
             }
-
-            
         }
     }
     
@@ -167,7 +169,9 @@ UITableViewDataSource {
                 else { return }
             
             destination.show = show
+            destination.selectedSeason = selectedSeason
             destination.episodes = selectedEpisodes
+
             break
     
         default:

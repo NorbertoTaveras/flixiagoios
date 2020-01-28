@@ -449,4 +449,29 @@ class UIUtils {
                 duration: 1.0)
         }
     }
+    
+    public static func openGoogleSearch(query: String) -> Bool {
+        guard let escapedQuery = query.addingPercentEncoding(
+            withAllowedCharacters: .urlQueryAllowed)
+            else { return false }
+        
+        return openUrl(
+            urlText: "https://www.google.com/search?q=\(escapedQuery)")
+    }
+    
+    public static func openUrl(urlText: String) -> Bool {
+        guard let url = URL(string: urlText)
+            else { return false }
+        
+        return openUrl(url: url)
+    }
+    
+    public static func openUrl(url: URL) -> Bool {
+        UIApplication.shared.open(
+            url,
+            options: [:]) { (result) in
+        }
+        
+        return true
+    }
 }

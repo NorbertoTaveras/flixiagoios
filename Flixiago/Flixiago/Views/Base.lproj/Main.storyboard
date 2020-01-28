@@ -1457,6 +1457,26 @@
                                                                 <color key="textColor" red="0.34641844030000002" green="0.22235286239999999" blue="0.59891778230000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                                 <nil key="highlightedColor"/>
                                                             </label>
+                                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mQr-4Y-LFR" userLabel="NearbyContainer">
+                                                                <rect key="frame" x="173" y="45" width="48" height="48"/>
+                                                                <subviews>
+                                                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="calendar" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="riT-Bh-qTb">
+                                                                        <rect key="frame" x="16" y="17.666666666666664" width="32" height="29.000000000000007"/>
+                                                                        <color key="tintColor" red="0.34641844030000002" green="0.22235286239999999" blue="0.59891778230000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                                        <constraints>
+                                                                            <constraint firstAttribute="width" constant="32" id="WCH-Ne-crq"/>
+                                                                            <constraint firstAttribute="height" constant="32" id="l35-qY-1fI"/>
+                                                                        </constraints>
+                                                                    </imageView>
+                                                                </subviews>
+                                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                                <constraints>
+                                                                    <constraint firstAttribute="trailing" secondItem="riT-Bh-qTb" secondAttribute="trailing" id="0R3-kh-VtO"/>
+                                                                    <constraint firstAttribute="height" constant="48" id="nlb-G7-b80"/>
+                                                                    <constraint firstAttribute="width" constant="48" id="oLJ-k9-OBB"/>
+                                                                    <constraint firstAttribute="bottom" secondItem="riT-Bh-qTb" secondAttribute="bottom" id="pDI-ON-vjj"/>
+                                                                </constraints>
+                                                            </view>
                                                         </subviews>
                                                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                                         <constraints>
@@ -1464,6 +1484,8 @@
                                                             <constraint firstItem="HqC-gn-WfR" firstAttribute="top" secondItem="c1G-oW-t9b" secondAttribute="top" constant="4" id="7MY-Hf-107"/>
                                                             <constraint firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="5c6-er-9V1" secondAttribute="trailing" id="Ywo-T0-b00"/>
                                                             <constraint firstItem="HqC-gn-WfR" firstAttribute="leading" secondItem="c1G-oW-t9b" secondAttribute="leading" id="coE-qZ-zPs"/>
+                                                            <constraint firstAttribute="bottom" secondItem="mQr-4Y-LFR" secondAttribute="bottom" id="hS6-tb-1V3"/>
+                                                            <constraint firstAttribute="trailing" secondItem="mQr-4Y-LFR" secondAttribute="trailing" id="vC9-qv-fHe"/>
                                                             <constraint firstItem="5c6-er-9V1" firstAttribute="leading" secondItem="HqC-gn-WfR" secondAttribute="trailing" constant="16" id="wjo-WR-e7A"/>
                                                         </constraints>
                                                     </view>
@@ -1876,12 +1898,14 @@
                         <outlet property="dateRuntimeView" destination="SRO-88-IZ4" id="7Sr-6Q-MPm"/>
                         <outlet property="favoriteView" destination="kdB-Y7-DZY" id="y7R-Kv-DbV"/>
                         <outlet property="genresView" destination="NSr-zF-rga" id="IAa-pQ-7FY"/>
+                        <outlet property="nearbyContainer" destination="mQr-4Y-LFR" id="Lu3-IC-ng7"/>
                         <outlet property="overviewView" destination="M33-td-DlY" id="xSo-v8-hmt"/>
                         <outlet property="posterView" destination="Zjp-EO-1H5" id="Fam-2f-JiQ"/>
                         <outlet property="ratingCountView" destination="5c6-er-9V1" id="nSK-bf-9ML"/>
                         <outlet property="ratingRingView" destination="HqC-gn-WfR" id="iii-co-1sD"/>
                         <outlet property="reviewsView" destination="PQM-Ob-jMt" id="TS5-KT-2CE"/>
                         <outlet property="scrollView" destination="jQi-gd-KVr" id="Idr-MP-pNn"/>
+                        <outlet property="showingsView" destination="riT-Bh-qTb" id="PoH-xs-ibL"/>
                         <outlet property="similarCollectionView" destination="icF-Lv-QOb" id="Wuv-hz-Yjc"/>
                         <outlet property="similarHeadingView" destination="V65-74-SM3" id="LKn-CE-f0E"/>
                         <outlet property="titleView" destination="It2-xT-bSx" id="UOj-8z-gGG"/>
@@ -1894,7 +1918,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="YhT-xZ-0ac" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="4562" y="-12"/>
+            <point key="canvasLocation" x="4560.8695652173919" y="-12.053571428571429"/>
         </scene>
         <!--Cast View Controller-->
         <scene sceneID="iwZ-Zc-UYN">
@@ -2542,8 +2566,9 @@
                                                                             <subviews>
                                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" insetsLayoutMarginsFromSafeArea="NO" text="Completed" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9nE-rm-VTz" userLabel="Completed">
                                                                                     <rect key="frame" x="0.0" y="19.333333333333329" width="84.333333333333329" height="20.666666666666671"/>
+                                                                                    <color key="backgroundColor" red="0.34641844030000002" green="0.22235286239999999" blue="0.59891778230000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                                                    <nil key="textColor"/>
+                                                                                    <color key="textColor" red="0.92077261210000005" green="0.80058675999999995" blue="0.31087681649999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                                                     <nil key="highlightedColor"/>
                                                                                 </label>
                                                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" insetsLayoutMarginsFromSafeArea="NO" text="2/2" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7Bh-hl-Iz4">
@@ -2986,6 +3011,7 @@
     </scenes>
     <resources>
         <image name="arrow.left" catalog="system" width="64" height="48"/>
+        <image name="calendar" catalog="system" width="64" height="52"/>
         <image name="eye" catalog="system" width="64" height="40"/>
         <image name="eye.fill" catalog="system" width="64" height="38"/>
         <image name="film" catalog="system" width="64" height="46"/>

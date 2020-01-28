@@ -42,7 +42,7 @@ class MediaViewBaseController:
     private var certificationMenuButton: UIView?
     private var certificationList: [CertificationListEntry]?
     private var certificationLookup: [String: CertificationListEntry]?
-    private var certificationLimit: Int = 5
+    private var certificationLimit: Int = Int.max
     
     private var certCache: [Int64: Any] = [:]
     
@@ -122,8 +122,15 @@ class MediaViewBaseController:
 
         getCertificationList(
         forCountry: TMDBService.COUNTRY) { (list, error) in
-            self.certificationList = list
+            let allEntry = CertificationListEntry(JSON: [
+                "certification": "All",
+                "meaning": "",
+                "order": Int.max
+            ])
             
+            self.certificationList = list
+            self.certificationList?.insert(allEntry!, at: 0)
+
             self.certificationLookup = [:]
             for certification in list ?? [] {
                 guard let letter = certification.certification
@@ -154,6 +161,12 @@ class MediaViewBaseController:
             else { return }
         
         let sortedCerts = certs.sorted { (lhs, rhs) -> Bool in
+            if lhs.order == Int.max {
+                return true
+            }
+            if rhs.order == Int.max {
+                return false
+            }
             return (lhs.order ?? 0) < (rhs.order ?? 0)
         }
 
@@ -447,7 +460,7 @@ class MediaViewBaseController:
                     
                     for entry in list {
                         if entry.order == self.certificationLimit {
-                            if self.certificationLimit != 5 {
+                            if self.certificationLimit != Int.max {
                                 title.append(entry.certification ?? "???")
                             }
                             break

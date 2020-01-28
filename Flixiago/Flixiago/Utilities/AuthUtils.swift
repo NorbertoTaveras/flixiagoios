@@ -639,4 +639,8 @@ class AuthUtils:
             return false
         }
     }
+    
+    public static func isLoggedIn() -> Bool {
+        return Auth.auth().currentUser != nil
+    }
 }

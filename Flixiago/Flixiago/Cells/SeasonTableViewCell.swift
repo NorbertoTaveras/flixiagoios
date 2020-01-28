@@ -65,6 +65,9 @@ public class SeasonTableViewCell: UITableViewCell {
                     ? "Completed"
                     : ""
                 
+                self.completedView.layer.cornerRadius = 2.0
+                //self.completedView.clipsToBounds = true
+                self.completedView.layer.masksToBounds = true
                 self.watchedTotalView.text = "\(watched)/\(episodes.count)"
         }
     }

@@ -565,6 +565,7 @@
 			baseConfigurationReference = C7E4AB6AE9E900DA6D0E6F68 /* Pods-Flixiago.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 8TZB36BTPB;
 				INFOPLIST_FILE = Flixiago/Info.plist;
@@ -575,6 +576,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.norbertotaveras.Flixiago;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -585,6 +587,7 @@
 			baseConfigurationReference = D1409171B94FFE2195EE2AE2 /* Pods-Flixiago.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 8TZB36BTPB;
 				INFOPLIST_FILE = Flixiago/Info.plist;
@@ -595,6 +598,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.norbertotaveras.Flixiago;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
