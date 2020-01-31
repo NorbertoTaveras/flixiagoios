@@ -19,7 +19,7 @@ class MediaViewBaseController:
 
     typealias GenrePair = (name: String, id: Int64)
 
-    private var media: [Media] = []
+    public var media: [Media] = []
     private var displayedMedia: [Media] = []
     
     private var searchBarView: UISearchBar?
@@ -46,6 +46,15 @@ class MediaViewBaseController:
     
     private var certCache: [Int64: Any] = [:]
     
+    public var closing: Bool = false
+    public var latestRequestId: Int64 = 0
+    public var visibleRows: Int = 1
+    
+    typealias IndicatorCleanup = () -> Void
+    public var removeIndicator: IndicatorCleanup?
+    
+    private let cellHeight = 166
+    
     private let activeFilterColor = UIColor(
         red: CGFloat(0xe8) / CGFloat(255.0),
         green: CGFloat(0xc5) / CGFloat(255.0),
@@ -68,6 +77,8 @@ class MediaViewBaseController:
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        closing = false
+        
         tablePlaceholder = UIUtils.PlaceholderView(
             parent: table,
             text: "Error getting results")
@@ -75,11 +86,53 @@ class MediaViewBaseController:
         table.reloadData()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        visibleRows = max(1, Int(table.frame.height) / cellHeight)
+    }
+    
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         tablePlaceholder?.handleLayoutSubViews()
     }
     
+    func makeLoadMoreCompletionHandler(
+        page: Int,
+        query: String?,
+        genreId: Int64?) -> (Bool) -> Void {
+        
+        return { done in
+            self.loading = false
+            
+            if !done {
+                self.loadMoreIfNeeded(
+                    page: page,
+                    query: query,
+                    genreId: genreId)
+            } else {
+                print("done items")
+            }
+        }
+    }
+    
+    func removeLoadMoreIndicator(recreate: Bool) {
+        if removeIndicator != nil {
+            removeIndicator!()
+            removeIndicator = nil
+        }
+        
+        if recreate {
+            removeIndicator = UIUtils.createIndicator(parent: self)
+        }
+    }
+
+    public func loadMoreIfNeeded(page: Int, query: String?, genreId: Int64?) {
+        self.table.layoutIfNeeded()
+        if !closing &&
+            self.table.contentSize.height < self.table.frame.height {
+            self.loadMore(page: page + 1, query: query, genreId: genreId)
+        }
+    }
+
     func initSearch(searchBar: UISearchBar) {
         self.searchBarView = searchBar
         searchBar.delegate = self
@@ -90,9 +143,11 @@ class MediaViewBaseController:
         table.delegate = self
         table.dataSource = self
         table.prefetchDataSource = self
-
-        
-        //loadMore(page: page, query: nil, genreId: currentGenreId)
+        table.rowHeight = CGFloat(cellHeight)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        closing = true
     }
     
     func initSortBySegment(sortBySegment: UISegmentedControl,
@@ -403,6 +458,10 @@ class MediaViewBaseController:
                 }
             }
         }
+        
+        if pending == 0 {
+            completion()
+        }
     }
 
     func changeGenreFilter(pair: GenrePair) {
@@ -501,9 +560,14 @@ class MediaViewBaseController:
     }
     
     // MARK: - Data Results Processing
-    func append(media: [Media], error: Error?) {
+    func append(media: [Media], error: Error?,
+                callback: @escaping () -> Void) {
+        print("Received \(media.count) items \(Int64(Date().timeIntervalSince1970))")
         self.media.append(contentsOf: media)
-        filterAppendedMedia(addedMedia: media)
+        filterAppendedMedia(addedMedia: media) {
+            self.removeLoadMoreIndicator(recreate: false)
+            callback()
+        }
         
         tablePlaceholder?.toggle(show: error != nil)
     }
@@ -522,13 +586,16 @@ class MediaViewBaseController:
         return true
     }
     
-    func filterAppendedMedia(addedMedia media: [Media]) {
+    func filterAppendedMedia(addedMedia media: [Media],
+                             callback: @escaping () -> Void) {
         var results: [String?] = []
         
         let pending = media.count
         var completed = 0
         
         let completion = {
+            var anyChanges = false
+            
             for (index, letter) in results.enumerated() {
                 guard let lookup = self.certificationLookup,
                     let letter = letter,
@@ -543,9 +610,15 @@ class MediaViewBaseController:
                     genre_ids: ids) {
                     
                     self.displayedMedia.append(media[index])
+                    anyChanges = true
                 }
             }
-            self.table.reloadData()
+            
+            if anyChanges {
+                self.table.reloadData()
+            }
+            
+            callback()
         }
         
         for (index, medium) in media.enumerated() {
@@ -562,6 +635,10 @@ class MediaViewBaseController:
                         completion()
                     }
             }
+        }
+        
+        if pending == 0 {
+            completion()
         }
     }
     
@@ -586,7 +663,7 @@ class MediaViewBaseController:
     
     func tableView(_ tableView: UITableView,
                    heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 166
+        return CGFloat(cellHeight)
     }
     
     func currentQuery() -> String? {
@@ -597,10 +674,29 @@ class MediaViewBaseController:
     
     func tableView(_ tableView: UITableView,
                    prefetchRowsAt indexPaths: [IndexPath]) {
+        var wtf = ""
+        for ip in indexPaths {
+            wtf += "\(ip.row) "
+        }
+        print(wtf)
+        
+        let needed = indexPaths.contains { item in
+            return item.row + visibleRows >= displayedMedia.count
+        }
+        
+        if !needed {
+            print("prefetch not needed")
+            return
+        } else {
+            print("prefetch needed")
+        }
+        
         if !loading {
             loading = true
             page += 1
-            loadMore(page: page, query: currentQuery(), genreId: currentGenreId)
+            loadMore(page: page,
+                     query: currentQuery(),
+                     genreId: currentGenreId)
         }
     }
     
@@ -651,6 +747,9 @@ class MediaViewBaseController:
         table.reloadData()
         updateTitle()
         tablePlaceholder?.toggle(show: false)
+        
+        removeLoadMoreIndicator(recreate: false)
+        
         page = 1
     }
     

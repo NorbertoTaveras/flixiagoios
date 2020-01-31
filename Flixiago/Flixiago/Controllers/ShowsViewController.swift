@@ -20,7 +20,6 @@ class ShowsViewController: MediaViewBaseController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
         initSortBySegment(sortBySegment: sortBySegment,
                           fromSortBys: TMDBService.showSortBys,
                           titleView: sortByView)
@@ -34,30 +33,69 @@ class ShowsViewController: MediaViewBaseController {
         }
     }
     
-    override func loadMore(page: Int, query: String?, genreId: Int64?) {
+    override func loadMore(
+        page: Int,
+        query: String?,
+        genreId: Int64?) {
+        
         sortBySegment.isEnabled = (query == nil)
         
-        if let genreId = genreId {
-            TMDBService.searchShows(
-                genreId: genreId,
-                page: page) { (shows, error) in
-                    self.append(media: shows?.results ?? [],
-                                error: error)
-            }
-        } else if let query = query {
+        let completion: (Bool) -> Void
+        completion = makeLoadMoreCompletionHandler(
+            page: page,
+            query: query,
+            genreId: genreId)
+
+        latestRequestId += Int64(1)
+        let thisRequestId: Int64 = latestRequestId
+        
+        removeLoadMoreIndicator(recreate: true)
+        
+        if let query = query {
             TMDBService.searchShows(
                 query: query,
                 page: page) { (shows, error) in
-                    self.append(media: shows?.results ?? [],
-                                error: error)
+                    guard thisRequestId != self.latestRequestId
+                        else { return }
+                    
+                    self.append(
+                        media: shows?.results ?? [],
+                        error: error) {
+                            let isDone = shows?.results.count == 0 ||
+                                shows?.total_pages == shows?.page
+                            completion(isDone)
+                    }
+            }
+        } else if let genreId = genreId {
+            TMDBService.searchShows(
+                genreId: genreId,
+                page: page) { (shows, error) in
+                    guard thisRequestId == self.latestRequestId
+                        else { return }
+                    
+                    self.append(
+                        media: shows?.results ?? [],
+                        error: error) {
+                            let isDone = shows?.results.count == 0 ||
+                                shows?.total_pages == shows?.page
+                            completion(isDone)
+                    }
             }
         } else {
             TMDBService.getShows(
                 sortBy: TMDBService.showSortBys[currentSortBy].sortBy,
                 page: page,
                 language: TMDBService.LANGUAGE) { (shows, error) in
-                    self.append(media: shows?.results ?? [],
-                                error: error)
+                    guard thisRequestId == self.latestRequestId
+                        else { return }
+                    
+                    self.append(
+                        media: shows?.results ?? [],
+                        error: error) {
+                            let isDone = shows?.results.count == 0 ||
+                                shows?.total_pages == shows?.page
+                            completion(isDone)
+                    }
             }
         }
     }

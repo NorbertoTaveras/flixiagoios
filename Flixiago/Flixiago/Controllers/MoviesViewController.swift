@@ -35,28 +35,69 @@ class MoviesViewController: MediaViewBaseController {
         }
     }
     
-    override func loadMore(page: Int, query: String?, genreId: Int64?) {
+    override func loadMore(
+        page: Int,
+        query: String?,
+        genreId: Int64?) {
+        
+        sortBySegment.isEnabled = (query == nil)
+        
+        let completion: (Bool) -> Void
+        completion = makeLoadMoreCompletionHandler(
+            page: page,
+            query: query,
+            genreId: genreId)
+        
+        latestRequestId += Int64(1)
+        let thisRequestId: Int64 = latestRequestId
+        
+        removeLoadMoreIndicator(recreate: true)
+        
         if let query = query {
             TMDBService.searchMovies(
                 query: query,
                 page: page) { (movies, error) in
-                    self.append(media: movies?.results ?? [],
-                                error: error)
+                    guard thisRequestId == self.latestRequestId
+                        else { return }
+                    
+                    self.append(
+                        media: movies?.results ?? [],
+                        error: error) {
+                            let isDone = movies?.results.count == 0 ||
+                                movies?.total_pages == movies?.page
+                            completion(isDone)
+                    }
             }
         } else if let genreId = genreId {
             TMDBService.searchMovies(
                 genreId: genreId,
                 page: page) { (movies, error) in
-                    self.append(media: movies?.results ?? [],
-                                error: error)
+                    guard thisRequestId == self.latestRequestId
+                        else { return }
+                    
+                    self.append(
+                        media: movies?.results ?? [],
+                        error: error) {
+                            let isDone = movies?.results.count == 0 ||
+                            movies?.total_pages == movies?.page
+                            completion(isDone)
+                    }
             }
         } else {
             TMDBService.getMovies(
                 sortBy: TMDBService.movieSortBys[currentSortBy].sortBy,
                 page: page,
                 language: TMDBService.LANGUAGE) { (movies, error) in
-                    self.append(media: movies?.results ?? [],
-                                error: error)
+                    guard thisRequestId == self.latestRequestId
+                        else { return }
+                    
+                    self.append(
+                        media: movies?.results ?? [],
+                        error: error) {
+                            let isDone = movies?.results.count == 0 ||
+                            movies?.total_pages == movies?.page
+                            completion(isDone)
+                    }
             }
         }
     }
