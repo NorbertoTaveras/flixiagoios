@@ -38,7 +38,8 @@ class MoviesViewController: MediaViewBaseController {
     override func loadMore(
         page: Int,
         query: String?,
-        genreId: Int64?) {
+        genreId: Int64?,
+        requestId: Int64) {
         
         sortBySegment.isEnabled = (query == nil)
         
@@ -46,10 +47,8 @@ class MoviesViewController: MediaViewBaseController {
         completion = makeLoadMoreCompletionHandler(
             page: page,
             query: query,
-            genreId: genreId)
-        
-        latestRequestId += Int64(1)
-        let thisRequestId: Int64 = latestRequestId
+            genreId: genreId,
+            requestId: requestId)
         
         removeLoadMoreIndicator(recreate: true)
         
@@ -57,8 +56,10 @@ class MoviesViewController: MediaViewBaseController {
             TMDBService.searchMovies(
                 query: query,
                 page: page) { (movies, error) in
-                    guard thisRequestId == self.latestRequestId
-                        else { return }
+                    print("Got some results for query \(query)")
+                    
+                    guard requestId == self.latestRequestId
+                        else { completion(true); return }
                     
                     self.append(
                         media: movies?.results ?? [],
@@ -72,8 +73,8 @@ class MoviesViewController: MediaViewBaseController {
             TMDBService.searchMovies(
                 genreId: genreId,
                 page: page) { (movies, error) in
-                    guard thisRequestId == self.latestRequestId
-                        else { return }
+                    guard requestId == self.latestRequestId
+                        else { completion(true); return }
                     
                     self.append(
                         media: movies?.results ?? [],
@@ -88,8 +89,8 @@ class MoviesViewController: MediaViewBaseController {
                 sortBy: TMDBService.movieSortBys[currentSortBy].sortBy,
                 page: page,
                 language: TMDBService.LANGUAGE) { (movies, error) in
-                    guard thisRequestId == self.latestRequestId
-                        else { return }
+                    guard requestId == self.latestRequestId
+                        else { completion(true); return }
                     
                     self.append(
                         media: movies?.results ?? [],

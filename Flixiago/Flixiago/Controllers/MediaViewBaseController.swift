@@ -31,7 +31,7 @@ class MediaViewBaseController:
     
     var currentSortBy: Int = 0
     private var page = 1
-    private var loading = false
+    private var loading: Int = 0
     
     private var selectedMedia = -1
     
@@ -69,7 +69,8 @@ class MediaViewBaseController:
 
     weak var table: UITableView!
 
-    func loadMore(page: Int, query: String?, genreId: Int64?) {
+    func loadMore(page: Int, query: String?,
+                  genreId: Int64?, requestId: Int64) {
     }
     
     override func viewDidLoad() {
@@ -98,16 +99,18 @@ class MediaViewBaseController:
     func makeLoadMoreCompletionHandler(
         page: Int,
         query: String?,
-        genreId: Int64?) -> (Bool) -> Void {
+        genreId: Int64?,
+        requestId: Int64) -> (Bool) -> Void {
         
         return { done in
-            self.loading = false
+            self.loading -= 1
             
             if !done {
                 self.loadMoreIfNeeded(
                     page: page,
                     query: query,
-                    genreId: genreId)
+                    genreId: genreId,
+                    requestId: requestId)
             } else {
                 print("done items")
             }
@@ -125,11 +128,17 @@ class MediaViewBaseController:
         }
     }
 
-    public func loadMoreIfNeeded(page: Int, query: String?, genreId: Int64?) {
+    public func loadMoreIfNeeded(
+        page: Int, query: String?,
+        genreId: Int64?, requestId: Int64) {
+        
         self.table.layoutIfNeeded()
         if !closing &&
             self.table.contentSize.height < self.table.frame.height {
-            self.loadMore(page: page + 1, query: query, genreId: genreId)
+            self.loadMore(page: page + 1,
+                          query: query,
+                          genreId: genreId,
+                          requestId: requestId)
         }
     }
 
@@ -164,9 +173,18 @@ class MediaViewBaseController:
         }
     }
     
+    func newRequestId() -> Int64 {
+        latestRequestId += 1
+        return latestRequestId
+    }
+    
     func initLoad() {
         reset()
-        loadMore(page: page, query: currentQuery(), genreId: currentGenreId)
+        let requestId = newRequestId()
+        loadMore(page: page,
+                 query: currentQuery(),
+                 genreId: currentGenreId,
+                 requestId: requestId)
     }
     
     func initCertificationMenu(
@@ -474,8 +492,11 @@ class MediaViewBaseController:
 
         currentGenreId = pair.id
         updateTitle()
-        reset()
-        loadMore(page: 1, query: currentQuery(), genreId: currentGenreId)
+        let requestId = reset()
+        loadMore(page: 1,
+                 query: currentQuery(),
+                 genreId: currentGenreId,
+                 requestId: requestId)
     }
     
     func titleFromSortBy(pair: TMDBService.SortByPair) -> String {
@@ -553,9 +574,12 @@ class MediaViewBaseController:
         if currentSortBy != index {
             currentSortBy = index
             updateTitle()
-            reset()
+            let requestId = reset()
             let query = currentQuery()
-            loadMore(page: 1, query: query, genreId: currentGenreId)
+            loadMore(page: 1,
+                     query: query,
+                     genreId: currentGenreId,
+                     requestId: requestId)
         }
     }
     
@@ -691,12 +715,13 @@ class MediaViewBaseController:
             print("prefetch needed")
         }
         
-        if !loading {
-            loading = true
+        if loading == 0 {
+            loading += 1
             page += 1
             loadMore(page: page,
                      query: currentQuery(),
-                     genreId: currentGenreId)
+                     genreId: currentGenreId,
+                     requestId: latestRequestId)
         }
     }
     
@@ -741,7 +766,7 @@ class MediaViewBaseController:
             callback: callback)
     }
     
-    func reset() {
+    func reset() -> Int64 {
         media.removeAll()
         displayedMedia.removeAll()
         table.reloadData()
@@ -751,6 +776,8 @@ class MediaViewBaseController:
         removeLoadMoreIndicator(recreate: false)
         
         page = 1
+        
+        return newRequestId()
     }
     
     func searchBar(_ searchBar: UISearchBar,
@@ -771,9 +798,12 @@ class MediaViewBaseController:
             clearSortBy()
         }
         
-        reset()
+        let requestId = reset()
         
-        loadMore(page: 1, query: query, genreId: currentGenreId)
+        loadMore(page: 1,
+                 query: query,
+                 genreId: currentGenreId,
+                 requestId: requestId)
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {

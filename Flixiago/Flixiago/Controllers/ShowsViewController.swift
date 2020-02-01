@@ -36,7 +36,8 @@ class ShowsViewController: MediaViewBaseController {
     override func loadMore(
         page: Int,
         query: String?,
-        genreId: Int64?) {
+        genreId: Int64?,
+        requestId: Int64) {
         
         sortBySegment.isEnabled = (query == nil)
         
@@ -44,19 +45,19 @@ class ShowsViewController: MediaViewBaseController {
         completion = makeLoadMoreCompletionHandler(
             page: page,
             query: query,
-            genreId: genreId)
+            genreId: genreId,
+            requestId: requestId)
 
-        latestRequestId += Int64(1)
-        let thisRequestId: Int64 = latestRequestId
-        
         removeLoadMoreIndicator(recreate: true)
         
         if let query = query {
             TMDBService.searchShows(
                 query: query,
                 page: page) { (shows, error) in
-                    guard thisRequestId != self.latestRequestId
-                        else { return }
+                    print("Got some results for query \(query)")
+                    
+                    guard requestId == self.latestRequestId
+                        else { print("cancel"); completion(true); return }
                     
                     self.append(
                         media: shows?.results ?? [],
@@ -70,8 +71,8 @@ class ShowsViewController: MediaViewBaseController {
             TMDBService.searchShows(
                 genreId: genreId,
                 page: page) { (shows, error) in
-                    guard thisRequestId == self.latestRequestId
-                        else { return }
+                    guard requestId == self.latestRequestId
+                        else { print("cancel"); completion(true); return }
                     
                     self.append(
                         media: shows?.results ?? [],
@@ -86,8 +87,8 @@ class ShowsViewController: MediaViewBaseController {
                 sortBy: TMDBService.showSortBys[currentSortBy].sortBy,
                 page: page,
                 language: TMDBService.LANGUAGE) { (shows, error) in
-                    guard thisRequestId == self.latestRequestId
-                        else { return }
+                    guard requestId == self.latestRequestId
+                        else { print("cancel"); completion(true); return }
                     
                     self.append(
                         media: shows?.results ?? [],
