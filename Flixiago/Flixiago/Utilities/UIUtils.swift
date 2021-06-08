@@ -174,6 +174,17 @@ class UIUtils {
         }
     }
     
+    static func presentPopover(_ sheet: UIAlertController?,
+                               controller: UIViewController,
+                               view: UIView?) {
+        guard let view = view
+            else { return }
+
+        sheet?.popoverPresentationController?.canOverlapSourceViewRect = true
+        sheet?.popoverPresentationController?.sourceView = controller.view
+        sheet?.popoverPresentationController?.sourceRect = view.frame
+    }
+    
     static func formatDate(from date: Date) -> String {
         let formatter = DateFormatter(
             withFormat: dateFormat,
@@ -473,5 +484,11 @@ class UIUtils {
         }
         
         return true
+    }
+    
+    public static func circularize(view: UIView) {
+        view.clipsToBounds = true
+        view.layer.masksToBounds = true
+        view.layer.cornerRadius = view.layer.frame.width / 2
     }
 }

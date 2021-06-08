@@ -222,7 +222,7 @@ class MediaViewBaseController:
         }
     }
     
-    @objc func certificationButtonClicked(sender: UIView) {
+    @objc func certificationButtonClicked(sender: UITapGestureRecognizer) {
         let sheet = UIAlertController(
             title: "Choose a certification limit",
             message: nil,
@@ -273,7 +273,12 @@ class MediaViewBaseController:
         }
         sheet.addAction(cancel)
         
-        self.present(sheet, animated: true, completion: nil)
+        UIUtils.presentPopover(
+            sheet,
+            controller: self,
+            view: sender.view)
+        
+        present(sheet, animated: true, completion: nil)
     }
     
     typealias CertCallback = (String?, Error?) -> Void
@@ -323,7 +328,7 @@ class MediaViewBaseController:
         genreFilterButton.isUserInteractionEnabled = true
     }
 
-    @objc func filterButtonClicked(sender: UIView) {
+    @objc func filterButtonClicked(sender: UITapGestureRecognizer) {
         let sheet = UIAlertController(
             title: "Choose a genre",
             message: nil,
@@ -387,6 +392,11 @@ class MediaViewBaseController:
                     sheet.dismiss(animated: true, completion: nil)
             }
             sheet.addAction(cancel)
+            
+            UIUtils.presentPopover(
+                sheet,
+                controller: self,
+                view: sender.view)
             
             self.present(sheet, animated: true, completion: nil)
         }
@@ -679,9 +689,8 @@ class MediaViewBaseController:
                 withIdentifier: "media_cell") as? MediaTableViewCell
             else {return UITableViewCell()}
         
-        let target = displayedMedia[indexPath.row]
-        cell.setupMediaCell(media: target)
-        
+            let target = displayedMedia[indexPath.row]
+            cell.setupMediaCell(with: target)
         return cell
     }
     
@@ -706,6 +715,10 @@ class MediaViewBaseController:
         
         let needed = indexPaths.contains { item in
             return item.row + visibleRows >= displayedMedia.count
+        }
+        
+        for path in indexPaths {
+            print("The path is \(path)")
         }
         
         if !needed {

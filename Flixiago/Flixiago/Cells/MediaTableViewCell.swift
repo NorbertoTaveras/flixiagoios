@@ -64,6 +64,9 @@ class MediaTableViewCell: UITableViewCell {
     private var watchToggler: Media.FavoriteToggler?
     private var favoriteToggler: Media.FavoriteToggler?
 
+    override func prepareForReuse() {
+        setupMediaCell(with: .none)
+    }
     override func awakeFromNib() {
         super.awakeFromNib()
     }
@@ -72,15 +75,15 @@ class MediaTableViewCell: UITableViewCell {
         super.setSelected(selected, animated: animated)
     }
     
-    func setupMediaCell(media: Media) {
+    func setupMediaCell(with media: Media?) {
         currentMedia = media
-        media.setPosterImage(into: posterView)
+        media?.setPosterImage(into: posterView)
         posterView.layer.cornerRadius = 4.0
-        titleView.text = media.getTitle()
-        dateView.text = media.formatReleaseDate()
-        media.getGenreList { (genreList, error) in
+        titleView.text = media?.getTitle()
+        dateView.text = media?.formatReleaseDate()
+        media?.getGenreList { (genreList, error) in
 
-            if self.currentMedia?.id != media.id {
+            if self.currentMedia?.id != media?.id {
                 return
             }
             
@@ -89,16 +92,16 @@ class MediaTableViewCell: UITableViewCell {
                 return
             }
             
-            self.genresView.text = media.formatGenreList(lookup: genreList)
+            self.genresView.text = media?.formatGenreList(lookup: genreList)
             
         }
         
         UIUtils.setupRatingRing(
             ringView: ratingView,
-            vote_average: media.vote_average)
+            vote_average: media?.vote_average)
                 
-        media.getCertification() { (cert, error) in
-            if self.currentMedia?.id != media.id {
+        media?.getCertification() { (cert, error) in
+            if self.currentMedia?.id != media?.id {
                 return
             }
             
@@ -111,10 +114,10 @@ class MediaTableViewCell: UITableViewCell {
             self.certificationView.text = formattedCert
         }
         
-        watchToggler = media.autoButton(
+        watchToggler = media?.autoButton(
             kind: "w", into: watchView)
         
-        favoriteToggler = media.autoButton(
+        favoriteToggler = media?.autoButton(
             kind: "f", into: favoriteView)
     }
 }

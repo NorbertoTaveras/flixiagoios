@@ -136,9 +136,7 @@ class AuthUtils:
         }
         
         if let photoView = views.photoView {
-            photoView.layer.masksToBounds = true
-            photoView.layer.cornerRadius =  photoView.frame.size.width / 2
-            //photoView.clipsToBounds = true;
+            UIUtils.circularize(view: photoView)
             photoView.image = UIImage(
                 systemName: "person.badge.plus.fill")
             
@@ -159,11 +157,13 @@ class AuthUtils:
         )
     }
     
-    @objc func photoTapped() {
-        showPhotoActionSheet()
+    @objc func photoTapped(sender: UITapGestureRecognizer) {
+        guard let view = sender.view
+            else { return }
+        showPhotoActionSheet(view: view)
     }
     
-    func showPhotoActionSheet() {
+    func showPhotoActionSheet(view: UIView) {
         let cameraAction = UIAlertAction(
             title: "Camera",
             style: .default, handler: { (alert:UIAlertAction!) -> Void in
@@ -191,6 +191,10 @@ class AuthUtils:
         actionSheet.addAction(galleryAction)
         actionSheet.addAction(cancelAction)
         
+        UIUtils.presentPopover(actionSheet,
+                               controller: self,
+                               view: view)
+        
         present(actionSheet, animated: true, completion: nil)
     }
     
@@ -214,6 +218,8 @@ class AuthUtils:
     
     func imagePicked(image: UIImage) {
         fields!.photoView?.image = image
+        fields!.photoView?.layer.cornerRadius =
+            (fields!.photoView?.layer.frame.width ?? 0) / 2
         photoChanged = true
     }
     

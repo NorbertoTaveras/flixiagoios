@@ -40,6 +40,7 @@ class AccountViewController: AuthUtils {
 
         downloadProfilePhoto(userId: user.uid) { (img, error) in
             self.photoView.image = img
+            UIUtils.circularize(view: self.photoView)
         }
         
         views.emailView.text = user.email
